@@ -27,37 +27,102 @@ O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de p
 
 O processo tradicional de pedidos de refeições frequentemente envolve comunicação fragmentada entre clientes, restaurantes e entregadores, podendo causar atrasos, erros nas solicitações e dificuldades no acompanhamento das entregas. O Bah Delivery busca solucionar esses problemas ao automatizar e organizar o fluxo de pedidos, centralizando as informações em uma única plataforma, reduzindo falhas de comunicação e proporcionando maior agilidade e transparência durante todo o processo de compra e entrega.
 
-## Perfis de Usuário
-
-### Cliente
 ---
 
-### Restaurante
+# Perfis de Usuário
+
+## Cliente
+
+Usuário responsável pela realização de pedidos de refeições através da plataforma.
+
+**Principais funcionalidades:**
+    
+    - Cadastro e autenticação no sistema;
+    - Gerenciamento dos dados pessoais;
+    - Consulta de restaurantes disponíveis;
+    - Visualização de cardápios e produtos;
+    - Adição de produtos ao carrinho;
+    - Realização de pedidos;
+    - Seleção da forma de pagamento;
+    - Processamento e confirmação do pagamento;
+    - Acompanhamento do status dos pedidos;
+    - Consulta do histórico de pedidos;
+    - Avaliação de restaurantes e entregas.
+
+## Restaurante
+
+Usuário responsável pelo gerenciamento do estabelecimento, produtos e atendimento dos pedidos recebidos.
+
+**Principais funcionalidades:**
+    
+    - Cadastro e gerenciamento do restaurante;
+    - Gerenciamento do cardápio;
+    - Cadastro, edição e remoção de produtos;
+    - Visualização dos pedidos recebidos;
+    - Atualização do status dos pedidos;
+    - Consulta do histórico de pedidos recebidos.
+
+## Entregador
+
+Usuário responsável pela retirada e entrega dos pedidos aos clientes.
+
+**Principais funcionalidades:**
+
+    - Cadastro e autenticação no sistema;
+    - Visualização de entregas disponíveis;
+    - Aceitação de solicitações de entrega;
+    - Consulta das informações necessárias para entrega;
+    - Atualização do status da entrega;
+    - Consulta do histórico de entregas realizadas.
+
+## Administrador
+
+Usuário responsável pelo gerenciamento e controle geral da plataforma.
+
+**Principais funcionalidades:**
+
+    - Gerenciamento de usuários;
+    - Controle de permissões de acesso;
+    - Gerenciamento de restaurantes cadastrados;
+    - Monitoramento das atividades do sistema;
+    - Consulta de logs e registros da aplicação;
+    - Administração geral da plataforma.
+
 ---
 
-### Entregador
----
+# Principais Funcionalidades do Sistema
 
-### Administrador
----
-
-## Principais Funcionalidades
+    - Cadastro e autenticação de usuários;
+    - Controle de acesso baseado em perfis;
+    - Gerenciamento de usuários e permissões;
+    - Cadastro e gerenciamento de restaurantes;
+    - Gerenciamento de cardápios e produtos;
+    - Carrinho de compras;
+    - Realização e gerenciamento de pedidos;
+    - Processamento de pagamentos;
+    - Registro e confirmação de transações;
+    - Acompanhamento do fluxo de entrega;
+    - Atualização de status dos pedidos;
+    - Histórico de pedidos e entregas;
+    - Avaliação de restaurantes;
+    - Armazenamento e consulta de informações do sistema;
+    - Registro de logs para auditoria e segurança.
 ---
 
 ## Informações Armazenadas ou Transmitidas
 
 O sistema manipula diferentes tipos de informações durante sua operação, incluindo:
 
-- Dados pessoais dos usuários;
-- Endereços de entrega;
-- Credenciais de autenticação;
-- Dados dos restaurantes;
-- Cardápios;
-- Pedidos;
-- Histórico de pedidos;
-- Avaliações;
-- Informações sobre pagamentos;
-- Logs do sistema.
+    - Dados pessoais dos usuários;
+    - Endereços de entrega;
+    - Credenciais de autenticação;
+    - Dados dos restaurantes;
+    - Cardápios;
+    - Pedidos;
+    - Histórico de pedidos;
+    - Avaliações;
+    - Informações sobre pagamentos;
+    - Logs do sistema.
 
 ---
 
