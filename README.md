@@ -255,6 +255,20 @@ Para que uma entrega seja concluída, o Bah Delivery precisa expor o endereço r
 | I07 | Logs do sistema | Os registros de auditoria armazenam o corpo integral das requisições, incluindo senhas, tokens de sessão e dados de pagamento, e ficam acessíveis a todos os administradores | O log, criado como mecanismo de proteção, passa a ser uma cópia adicional dos dados mais sensíveis do sistema |
 | I08 | Sistema de autenticação | O login e a recuperação de senha distinguem "e-mail não cadastrado" de "senha incorreta", permitindo confirmar quais endereços possuem conta na plataforma | Construção de uma lista de contas válidas que torna mais eficientes os ataques descritos em S01 e S05 |
 
+### Denial of Service (Indisponibilidade ou degradação do serviço)
+
+O Bah Delivery opera com forte concentração de demanda em horários de refeição, e sua operação depende de recursos que não são apenas computacionais: a capacidade de produção dos restaurantes e a disponibilidade dos entregadores também são finitas. Por isso, a indisponibilidade pode ser provocada tanto pela saturação da infraestrutura quanto pelo uso abusivo das próprias funcionalidades do sistema, sem que nenhuma falha técnica seja explorada.
+
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| D01 | Pedidos e dados dos restaurantes | Contas automatizadas realizam um grande volume de pedidos que nunca serão pagos ou retirados, pois o sistema não limita pedidos simultâneos por cliente nem exige confirmação do pagamento antes de enviá-los ao estabelecimento | Ocupação da capacidade de produção do restaurante com pedidos falsos, desperdício de insumos e impedimento do atendimento a clientes legítimos |
+| D02 | API REST e servidor da aplicação | Ausência de limitação de requisições nos endpoints públicos de consulta de restaurantes e cardápios, permitindo o envio de um volume massivo de chamadas | Lentidão ou indisponibilidade da plataforma justamente no horário de pico, com perda de vendas para restaurantes e para a plataforma |
+| D03 | Banco de dados | Consultas de busca e de histórico executadas sem paginação ou sem limite de intervalo, permitindo que uma única requisição solicite a totalidade dos registros | Esgotamento dos recursos do banco de dados a partir de poucas requisições, afetando todas as operações do sistema simultaneamente |
+| D04 | Processamento de solicitações de entrega | Um entregador aceita simultaneamente diversas entregas disponíveis sem qualquer limite e não as executa, mantendo os pedidos reservados em seu nome | Pedidos ficam retidos sem entregador efetivo, e outros entregadores são impedidos de aceitá-los, paralisando o fluxo de entregas de uma região |
+| D05 | Sistema de autenticação | O envio de mensagens de recuperação de senha e de confirmação de cadastro não possui limite por endereço ou por origem da requisição | Esgotamento da cota do serviço de mensagens, impedindo que usuários legítimos recuperem o acesso, além de uso da plataforma para incomodar terceiros |
+| D06 | Credenciais de autenticação | O bloqueio de conta adotado como resposta às tentativas repetidas de login (ver S01) é acionado sem distinguir a origem das tentativas, permitindo que um atacante bloqueie deliberadamente contas alheias | Impedimento do acesso de clientes, restaurantes e entregadores legítimos, transformando um controle de segurança em vetor de indisponibilidade |
+| D07 | Cardápios e servidor da aplicação | O envio de imagens de produtos não valida tamanho, formato nem quantidade por estabelecimento | Consumo do armazenamento e da banda do servidor até a interrupção do serviço, a partir de uma conta de restaurante comum |
+
 ---
 
 ## Casos de Abuso
