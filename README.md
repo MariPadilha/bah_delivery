@@ -204,7 +204,7 @@ Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão s
 
 Esta seção aplica o modelo STRIDE ao **Bah Delivery**, relacionando cada ameaça identificada aos ativos descritos na seção *Usuários, Ativos e Pontos de Interação*. As ameaças foram organizadas em uma tabela por categoria, e os identificadores utilizam um prefixo correspondente à letra da categoria (**S**poofing, **T**ampering, **R**epudiation, **I**nformation Disclosure, **D**enial of Service e **E**levation of Privilege).
 
-### Spoofing — Falsificação de identidade
+### Spoofing (Falsificação de identidade)
 
 O sistema possui quatro perfis distintos de usuário, e todas as operações relevantes dependem da correta identificação de quem as executa. Como o cadastro de restaurantes e entregadores concede acesso a dados pessoais de clientes, falhas na verificação de identidade permitem que um atacante assuma o papel de um usuário legítimo.
 
@@ -216,7 +216,7 @@ O sistema possui quatro perfis distintos de usuário, e todas as operações rel
 | S04 | Dados dos entregadores | Uma conta de entregador é compartilhada ou vendida e passa a ser utilizada por uma pessoa que nunca foi verificada pela plataforma | Uma pessoa não identificada recebe o endereço residencial dos clientes e retira pedidos nos estabelecimentos em nome de outro entregador |
 | S05 | Credenciais de autenticação | Envio de mensagens de *phishing* que imitam as notificações oficiais da plataforma, direcionando o cliente a uma página falsa de login | Captura das credenciais do cliente, viabilizando o acesso indevido descrito em S01 |
 
-### Tampering — Alteração indevida de dados
+### Tampering (Alteração indevida de dados)
 
 O fluxo de compra do Bah Delivery envolve dados que circulam entre o navegador do cliente, a API e o banco de dados, passando ainda pelo restaurante e pelo entregador. Cada etapa em que um valor, um endereço ou um status é informado por uma das partes representa uma oportunidade de alteração indevida, especialmente quando o servidor confia em informações enviadas pelo cliente sem validá-las novamente.
 
@@ -229,7 +229,7 @@ O fluxo de compra do Bah Delivery envolve dados que circulam entre o navegador d
 | T05 | Banco de dados | Injeção de comandos SQL nos campos de busca de restaurantes e produtos, decorrente da concatenação direta da entrada do usuário nas consultas | Alteração ou destruição de pedidos, cardápios e avaliações, comprometendo a integridade de toda a base |
 | T06 | Avaliações | Inserção ou edição fraudulenta de avaliações, seja por meio de contas descartáveis, seja por requisições que não verificam se o autor realmente realizou o pedido | Distorção da reputação de restaurantes e entregadores, levando clientes a decidirem com base em informação falsa |
 
-### Repudiation — Possibilidade de negar uma ação realizada
+### Repudiation (Possibilidade de negar uma ação realizada)
 
 O Bah Delivery intermedeia relações entre partes que não se conhecem e que podem ter interesses conflitantes diante de um problema na entrega. Sem registros confiáveis e protegidos contra alteração, a plataforma não consegue determinar o que de fato ocorreu, e qualquer um dos envolvidos pode negar a ação que executou. O ativo **Logs do sistema**, já identificado como de criticidade alta, é o principal elemento de proteção contra essa categoria.
 
@@ -240,17 +240,11 @@ O Bah Delivery intermedeia relações entre partes que não se conhecem e que po
 | R03 | Cardápios e pedidos | O restaurante nega ter alterado o preço de um produto ou ter cancelado um pedido, uma vez que o sistema não registra o histórico de alterações do cardápio nem a autoria dos cancelamentos | Conflito com o cliente, impossibilidade de apurar a conduta do estabelecimento e perda de confiança na plataforma |
 | R04 | Logs do sistema | Um administrador com acesso direto ao banco de dados apaga ou edita registros de log para ocultar operações que realizou | Eliminação das evidências de uso indevido, inviabilizando a auditoria e a responsabilização de quem detém maior privilégio no sistema |
 
-### Information Disclosure — Exposição indevida de informações
+### Information Disclosure (Exposição indevida de informações)
 
-*Reservado — Integrante 5.*
+### Denial of Service (Indisponibilidade ou degradação do serviço)
 
-### Denial of Service — Indisponibilidade ou degradação do serviço
-
-*Reservado — Integrante 5.*
-
-### Elevation of Privilege — Obtenção indevida de permissões
-
-*Reservado — Integrante 5.*
+### Elevation of Privilege (Obtenção indevida de permissões)
 
 ---
 
@@ -316,9 +310,9 @@ O Bah Delivery intermedeia relações entre partes que não se conhecem e que po
 
 | Integrante | Responsabilidades |
 |------------|------------------|
-| Arthur Medeiros | |
+| Arthur Medeiros | Identificação dos usuários, ativos e pontos de interação |
 | Emanuel Ferreira | |
 | Guilherme Mundt | |
 | Lívia Barbosa | Modelagem de diagramas |
 | Mariana Padilha | Identificaçao e Descrição do Sistema |
-| Matheus Ciocca | Modelagem de ameaças STRIDE — Spoofing, Tampering e Repudiation |
+| Matheus Ciocca | Modelagem de ameaças STRIDE (Spoofing, Tampering e Repudiation) |
