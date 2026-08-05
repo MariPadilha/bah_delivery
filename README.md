@@ -218,7 +218,16 @@ O sistema possui quatro perfis distintos de usuário, e todas as operações rel
 
 ### Tampering — Alteração indevida de dados
 
-*Em elaboração.*
+O fluxo de compra do Bah Delivery envolve dados que circulam entre o navegador do cliente, a API e o banco de dados, passando ainda pelo restaurante e pelo entregador. Cada etapa em que um valor, um endereço ou um status é informado por uma das partes representa uma oportunidade de alteração indevida, especialmente quando o servidor confia em informações enviadas pelo cliente sem validá-las novamente.
+
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| T01 | Pedidos e carrinho de compras | O valor total do pedido é calculado no navegador e aceito pelo servidor sem recálculo, permitindo que o cliente altere o preço antes de enviar o pedido ao pagamento | Pagamento de valor inferior ao devido, gerando prejuízo financeiro ao restaurante e à plataforma |
+| T02 | Pedidos | O endereço de entrega é alterado após a confirmação do pagamento, sem que o pedido seja revalidado ou o restaurante notificado | Desvio da mercadoria para um endereço controlado por terceiro |
+| T03 | Cardápios | O restaurante altera o preço de um produto depois que o pedido já foi confirmado pelo cliente, pois o pedido referencia o cardápio em vez de armazenar o preço praticado no momento da compra | Cobrança divergente do valor acordado e disputa entre cliente e estabelecimento |
+| T04 | Pedidos e histórico de entregas | O entregador marca o pedido como entregue sem ter realizado a entrega, uma vez que a atualização de status não exige nenhuma evidência ou confirmação do cliente | Cliente permanece sem o produto e o pagamento é liberado indevidamente ao entregador e ao restaurante |
+| T05 | Banco de dados | Injeção de comandos SQL nos campos de busca de restaurantes e produtos, decorrente da concatenação direta da entrada do usuário nas consultas | Alteração ou destruição de pedidos, cardápios e avaliações, comprometendo a integridade de toda a base |
+| T06 | Avaliações | Inserção ou edição fraudulenta de avaliações, seja por meio de contas descartáveis, seja por requisições que não verificam se o autor realmente realizou o pedido | Distorção da reputação de restaurantes e entregadores, levando clientes a decidirem com base em informação falsa |
 
 ### Repudiation — Possibilidade de negar uma ação realizada
 
