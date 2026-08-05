@@ -348,7 +348,7 @@ O sistema define quatro perfis com poderes bastante distintos, e o ativo **Contr
 |------------|------------------|
 | Arthur Medeiros | Identificação dos usuários, ativos e pontos de interação |
 | Emanuel Ferreira | |
-| Guilherme Mundt | |
+| Guilherme Mundt | | Modelagem de ameaças STRIDE (Information Disclosure, Danial of Service e Elevation of Privilege)
 | Lívia Barbosa | Modelagem de diagramas |
 | Mariana Padilha | Identificaçao e Descrição do Sistema |
 | Matheus Ciocca | Modelagem de ameaças STRIDE (Spoofing, Tampering e Repudiation) |
