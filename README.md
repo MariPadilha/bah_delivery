@@ -1,10 +1,10 @@
 # Bah Delivery
 
-Projeto desenvolvido para a disciplina **Engenharia de Software Seguro**.
+O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de pedidos e entregas de refeições, conectando diferentes perfis de usuário em um único ambiente digital. O sistema permite que clientes consultem cardápios, realizem pedidos e acompanhem o status das entregas, enquanto restaurantes podem administrar seus produtos, receber e organizar pedidos. Os entregadores possuem acesso às solicitações de entrega e informações necessárias para a execução do serviço, e os administradores são responsáveis pelo gerenciamento e controle geral da plataforma.
 
 ---
 
-# Identificação do Sistema
+## Identificação do Sistema
 
 | Item | Descrição |
 |------|-----------|
@@ -13,15 +13,13 @@ Projeto desenvolvido para a disciplina **Engenharia de Software Seguro**.
 | **Integrantes** | Arthur Medeiros, Emanuel Ferreira, Guilherme Mundt, Lívia Barbosa, Mariana Padilha e Matheus Ciocca |
 | **Repositório** | https://github.com/MariPadilha/bah_delivery |
 
+---
+
 ## Justificativa
 
 O sistema de delivery foi escolhido por representar uma aplicação real e amplamente utilizada, que envolve múltiplos usuários, processamento de pagamentos e armazenamento de dados sensíveis. Essas características possibilitam explorar diversos aspectos relacionados à segurança da informação e à modelagem de ameaças, atendendo aos objetivos da disciplina.
 
 ---
-
-# Descrição do Sistema
-
-O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de pedidos e entregas de refeições, conectando diferentes perfis de usuário em um único ambiente digital. O sistema permite que clientes consultem cardápios, realizem pedidos e acompanhem o status das entregas, enquanto restaurantes podem administrar seus produtos, receber e organizar pedidos. Os entregadores possuem acesso às solicitações de entrega e informações necessárias para a execução do serviço, e os administradores são responsáveis pelo gerenciamento e controle geral da plataforma.
 
 ## Problema que o sistema resolve
 
@@ -29,9 +27,9 @@ O processo tradicional de pedidos de refeições frequentemente envolve comunica
 
 ---
 
-# Perfis de Usuário
+## Perfis de Usuário
 
-## Cliente
+### Cliente
 
 Usuário responsável pela realização de pedidos de refeições através da plataforma.
 
@@ -49,7 +47,7 @@ Usuário responsável pela realização de pedidos de refeições através da pl
     - Consulta do histórico de pedidos;
     - Avaliação de restaurantes e entregas.
 
-## Restaurante
+### Restaurante
 
 Usuário responsável pelo gerenciamento do estabelecimento, produtos e atendimento dos pedidos recebidos.
 
@@ -62,7 +60,7 @@ Usuário responsável pelo gerenciamento do estabelecimento, produtos e atendime
     - Atualização do status dos pedidos;
     - Consulta do histórico de pedidos recebidos.
 
-## Entregador
+### Entregador
 
 Usuário responsável pela retirada e entrega dos pedidos aos clientes.
 
@@ -75,7 +73,7 @@ Usuário responsável pela retirada e entrega dos pedidos aos clientes.
     - Atualização do status da entrega;
     - Consulta do histórico de entregas realizadas.
 
-## Administrador
+### Administrador
 
 Usuário responsável pelo gerenciamento e controle geral da plataforma.
 
@@ -90,7 +88,7 @@ Usuário responsável pelo gerenciamento e controle geral da plataforma.
 
 ---
 
-# Principais Funcionalidades do Sistema
+## Principais Funcionalidades do Sistema
 
     - Cadastro e autenticação de usuários;
     - Controle de acesso baseado em perfis;
@@ -132,30 +130,29 @@ Os principais recursos que necessitam de proteção são:
 
 ---
 
-# Usuários, Ativos e Pontos de Interação
+## Usuários, Ativos e Pontos de Interação
 
-## Usuários
+### Usuários
 
 - Cliente
 - Restaurante
 - Entregador
 - Administrador
 
-## Ativos
+### Ativos
 
-## Pontos de interação
-
----
-
-# Visão Geral da Arquitetura
-
-## Diagrama de Arquitetura
-
-## Fluxo Simplificado
+### Pontos de interação
 
 ---
 
-# Modelagem de Ameaças (STRIDE)
+## Visão Geral da Arquitetura
+Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão simplificada de como os usuários e componentes interagem dentro do sistema de delivery.
+
+- [Diagrama de Casos de Uso](./diagramas/diagrama-caso-de-uso.png)
+
+---
+
+## Modelagem de Ameaças (STRIDE)
 
 | ID | Categoria | Componente | Ameaça | Impacto |
 |----|-----------|------------|--------|---------|
@@ -168,9 +165,9 @@ Os principais recursos que necessitam de proteção são:
 
 ---
 
-# Casos de Abuso
+## Casos de Abuso
 
-## CA01
+### CA01
 
 **Título**
 
@@ -204,33 +201,35 @@ Os principais recursos que necessitam de proteção são:
 
 ---
 
-# Considerações Finais
+## Considerações Finais
 
-## Principais ameaças
-
--
-
-## Ativos críticos
+### Principais ameaças
 
 -
 
-## Casos de abuso de maior impacto
+### Ativos críticos
 
 -
 
-## Dificuldades encontradas
+### Casos de abuso de maior impacto
+
+-
+
+### Dificuldades encontradas
 
 -
 
 ---
 
-# Organização do Projeto
+## Organização do Projeto
 
-| Integrante | Responsabilidade |
+### Etapa 1
+
+| Integrante | Responsabilidades |
 |------------|------------------|
 | Arthur Medeiros | |
 | Emanuel Ferreira | |
 | Guilherme Mundt | |
-| Lívia Barbosa | |
+| Lívia Barbosa | Modelagem de diagramas |
 | Mariana Padilha | Identificaçao e Descrição do Sistema |
 | Matheus Ciocca | |
