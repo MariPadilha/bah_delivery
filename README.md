@@ -269,6 +269,19 @@ O Bah Delivery opera com forte concentração de demanda em horários de refeiç
 | D06 | Credenciais de autenticação | O bloqueio de conta adotado como resposta às tentativas repetidas de login (ver S01) é acionado sem distinguir a origem das tentativas, permitindo que um atacante bloqueie deliberadamente contas alheias | Impedimento do acesso de clientes, restaurantes e entregadores legítimos, transformando um controle de segurança em vetor de indisponibilidade |
 | D07 | Cardápios e servidor da aplicação | O envio de imagens de produtos não valida tamanho, formato nem quantidade por estabelecimento | Consumo do armazenamento e da banda do servidor até a interrupção do serviço, a partir de uma conta de restaurante comum |
 
+### Elevation of Privilege (Obtenção indevida de permissões)
+
+O sistema define quatro perfis com poderes bastante distintos, e o ativo **Controle de permissões** foi classificado como crítico justamente porque é ele que separa um cliente de um administrador capaz de gerenciar toda a plataforma. As ameaças desta categoria decorrem de decisões de autorização tomadas no lugar errado — no navegador em vez do servidor, ou com base em informação que o próprio usuário controla.
+
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| E01 | Controle de permissões e API REST | A restrição de acesso é aplicada apenas na interface, que oculta as opções indisponíveis ao perfil, enquanto os endpoints correspondentes não verificam o papel do usuário autenticado | Um cliente autenticado invoca diretamente as rotas de gerenciamento de usuários e de restaurantes, obtendo poderes de administrador |
+| E02 | Cadastro de usuários e controle de permissões | O perfil do usuário é recebido como um campo da requisição de cadastro ou de atualização de dados e gravado sem validação no servidor | Um atacante cria ou converte a própria conta em administrador ou restaurante durante o cadastro, sem qualquer aprovação da plataforma |
+| E03 | Sessões de usuário e API REST | O token de sessão carrega o perfil do usuário e é aceito sem verificação adequada da assinatura, ou é assinado com um segredo fraco e previsível | Forja de um token válido com perfil de administrador, concedendo acesso irrestrito ao sistema sem passar pela autenticação |
+| E04 | Dados dos restaurantes e cardápios | As operações de gerenciamento de cardápio e de pedidos verificam apenas que o usuário é um restaurante, sem confirmar que o registro manipulado pertence ao estabelecimento autenticado | Um restaurante altera preços, remove produtos ou consulta os pedidos de um concorrente, obtendo vantagem competitiva indevida |
+| E05 | Controle de permissões | O perfil de administrador concentra todas as capacidades do sistema, sem segregação entre a gestão de usuários, a consulta de logs e o acesso a dados de pagamento | O comprometimento de uma única conta administrativa entrega o controle total da plataforma, incluindo a supressão de evidências descrita em R04 |
+| E06 | Controle de permissões e logs do sistema | A alteração de permissões de uma conta não exige reautenticação nem gera registro de auditoria da mudança | Um acesso administrativo obtido por meio de S01 ou S02 concede privilégios permanentes a contas controladas pelo atacante, sem que a elevação seja detectada |
+
 ---
 
 ## Casos de Abuso
