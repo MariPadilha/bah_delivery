@@ -242,9 +242,18 @@ O Bah Delivery intermedeia relações entre partes que não se conhecem e que po
 
 ### Information Disclosure (Exposição indevida de informações)
 
-### Denial of Service (Indisponibilidade ou degradação do serviço)
+Para que uma entrega seja concluída, o Bah Delivery precisa expor o endereço residencial e o telefone do cliente a duas partes externas à plataforma: o restaurante e o entregador. A isso somam-se os dados armazenados no banco — CPF, credenciais e informações de pagamento — e o tráfego que circula entre o navegador e a API. A exposição indevida nasce tanto da ausência de controles técnicos quanto da entrega de mais informação do que cada perfil precisa para executar sua tarefa.
 
-### Elevation of Privilege (Obtenção indevida de permissões)
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| I01 | API REST e pedidos | Os endpoints identificam pedidos, endereços e avaliações por um identificador sequencial e não verificam se o registro solicitado pertence ao usuário autenticado, permitindo que o cliente altere o identificador na requisição e leia dados de terceiros | Leitura do histórico de pedidos, endereços de entrega e dados pessoais de qualquer cliente da plataforma a partir de uma conta comum |
+| I02 | Dados pessoais dos clientes | O entregador mantém acesso ao endereço, telefone e nome do cliente mesmo após a conclusão da entrega, pois a informação permanece disponível no histórico de entregas | Acúmulo de endereços residenciais em poder de um perfil pouco verificado (ver S04), possibilitando uso posterior para fins não relacionados ao serviço |
+| I03 | Dados pessoais dos clientes | O restaurante recebe o cadastro completo do cliente, incluindo CPF e demais pedidos realizados, quando apenas o nome e o item solicitado são necessários para o preparo | Exposição desnecessária de dados pessoais a dezenas de estabelecimentos, ampliando a superfície de vazamento sem qualquer benefício operacional |
+| I04 | API REST e credenciais de autenticação | A comunicação entre o navegador e a API trafega sem TLS ou com certificado mal configurado, permitindo a leitura do conteúdo das requisições em redes compartilhadas | Captura de credenciais, tokens de sessão e dados de pagamento em trânsito, viabilizando o sequestro de sessão descrito em S02 |
+| I05 | Banco de dados e informações de pagamento | Senhas armazenadas com algoritmo de hash fraco ou sem *salt* e dados de pagamento persistidos em texto claro no banco de dados | Um único acesso indevido à base compromete as credenciais de todos os usuários e os meios de pagamento associados |
+| I06 | API REST | Mensagens de erro da aplicação retornam o rastreamento da exceção, a consulta SQL executada ou a versão dos componentes utilizados | O atacante obtém a estrutura interna do banco e as tecnologias em uso, facilitando a exploração da injeção descrita em T05 |
+| I07 | Logs do sistema | Os registros de auditoria armazenam o corpo integral das requisições, incluindo senhas, tokens de sessão e dados de pagamento, e ficam acessíveis a todos os administradores | O log, criado como mecanismo de proteção, passa a ser uma cópia adicional dos dados mais sensíveis do sistema |
+| I08 | Sistema de autenticação | O login e a recuperação de senha distinguem "e-mail não cadastrado" de "senha incorreta", permitindo confirmar quais endereços possuem conta na plataforma | Construção de uma lista de contas válidas que torna mais eficientes os ataques descritos em S01 e S05 |
 
 ---
 
