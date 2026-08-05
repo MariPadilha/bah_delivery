@@ -2,7 +2,7 @@
 
 O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de pedidos e entregas de refeições, conectando diferentes perfis de usuário em um único ambiente digital. O sistema permite que clientes consultem cardápios, realizem pedidos e acompanhem o status das entregas, enquanto restaurantes podem administrar seus produtos, receber e organizar pedidos. Os entregadores possuem acesso às solicitações de entrega e informações necessárias para a execução do serviço, e os administradores são responsáveis pelo gerenciamento e controle geral da plataforma.
 
----
+
 
 ## Identificação do Sistema
 
@@ -13,19 +13,19 @@ O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de p
 | **Integrantes** | Arthur Medeiros, Emanuel Ferreira, Guilherme Mundt, Lívia Barbosa, Mariana Padilha e Matheus Ciocca |
 | **Repositório** | https://github.com/MariPadilha/bah_delivery |
 
----
+
 
 ## Justificativa
 
 O sistema de delivery foi escolhido por representar uma aplicação real e amplamente utilizada, que envolve múltiplos usuários, processamento de pagamentos e armazenamento de dados sensíveis. Essas características possibilitam explorar diversos aspectos relacionados à segurança da informação e à modelagem de ameaças, atendendo aos objetivos da disciplina.
 
----
+
 
 ## Problema que o sistema resolve
 
 O processo tradicional de pedidos de refeições frequentemente envolve comunicação fragmentada entre clientes, restaurantes e entregadores, podendo causar atrasos, erros nas solicitações e dificuldades no acompanhamento das entregas. O Bah Delivery busca solucionar esses problemas ao automatizar e organizar o fluxo de pedidos, centralizando as informações em uma única plataforma, reduzindo falhas de comunicação e proporcionando maior agilidade e transparência durante todo o processo de compra e entrega.
 
----
+
 
 ## Perfis de Usuário
 
@@ -86,7 +86,7 @@ Usuário responsável pelo gerenciamento e controle geral da plataforma.
     - Consulta de logs e registros da aplicação;
     - Administração geral da plataforma.
 
----
+
 
 ## Principais Funcionalidades do Sistema
 
@@ -105,7 +105,7 @@ Usuário responsável pelo gerenciamento e controle geral da plataforma.
     - Avaliação de restaurantes;
     - Armazenamento e consulta de informações do sistema;
     - Registro de logs para auditoria e segurança.
----
+
 
 ## Informações Armazenadas ou Transmitidas
 
@@ -122,13 +122,28 @@ O sistema manipula diferentes tipos de informações durante sua operação, inc
     - Informações sobre pagamentos;
     - Logs do sistema.
 
----
+
 
 ## Recursos que Precisam ser Protegidos
 
-Os principais recursos que necessitam de proteção são:
+Os principais recursos que necessitam de proteção no **Bah Delivery** são:
 
----
+- Dados pessoais dos clientes, restaurantes, entregadores e administradores;
+- Credenciais de autenticação (login, senha e sessões de usuários);
+- Banco de dados da aplicação;
+- Informações de pagamento e transações financeiras;
+- Histórico de pedidos e entregas;
+- Cardápios e produtos cadastrados pelos restaurantes;
+- Dados cadastrais dos restaurantes;
+- Informações dos entregadores;
+- APIs responsáveis pela comunicação entre cliente e servidor;
+- Sistema de autenticação e controle de permissões;
+- Servidores da aplicação;
+- Logs de auditoria e monitoramento.
+
+A proteção desses recursos é essencial para garantir a confidencialidade, integridade e disponibilidade das informações processadas pelo sistema, assegurando que apenas usuários autorizados tenham acesso aos recursos da plataforma.
+
+
 
 ## Usuários, Ativos e Pontos de Interação
 
@@ -139,11 +154,44 @@ Os principais recursos que necessitam de proteção são:
 - Entregador
 - Administrador
 
+
+
 ### Ativos
 
-### Pontos de interação
+| Ativo | Descrição | Criticidade |
+|--------|-----------|-------------|
+| Dados pessoais dos clientes | Nome, CPF, e-mail, telefone e endereço de entrega. | Alta |
+| Credenciais de autenticação | Login, senha criptografada e sessões dos usuários. | Crítica |
+| Banco de dados | Armazena todas as informações do sistema. | Crítica |
+| Pedidos | Informações referentes aos pedidos realizados pelos clientes. | Alta |
+| Informações de pagamento | Dados utilizados durante o processamento dos pagamentos. | Crítica |
+| Histórico de pedidos | Registros de pedidos realizados e concluídos. | Alta |
+| Cardápios | Produtos, preços e categorias cadastrados pelos restaurantes. | Média |
+| Dados dos restaurantes | Informações cadastrais e operacionais dos estabelecimentos. | Alta |
+| Dados dos entregadores | Informações pessoais e histórico das entregas realizadas. | Alta |
+| Logs do sistema | Registro de autenticações, operações e eventos do sistema. | Alta |
+| API REST | Comunicação entre frontend, backend e demais serviços. | Alta |
+| Servidor da aplicação | Infraestrutura responsável pela execução do sistema. | Crítica |
+| Controle de permissões | Responsável pela autorização de acesso conforme o perfil do usuário. | Crítica |
 
----
+
+
+### Pontos de Interação
+
+| Usuário | Pontos de interação |
+|----------|---------------------|
+| Cliente | Cadastro, login, consulta de restaurantes, visualização do cardápio, carrinho de compras, realização de pedidos, pagamento, acompanhamento da entrega, histórico de pedidos e avaliações. |
+| Restaurante | Login, gerenciamento do restaurante, gerenciamento do cardápio, cadastro de produtos, visualização dos pedidos, atualização do status e consulta do histórico. |
+| Entregador | Login, visualização das entregas disponíveis, aceitação de pedidos, consulta dos dados da entrega, atualização do status e histórico de entregas. |
+| Administrador | Gerenciamento de usuários, controle de permissões, gerenciamento de restaurantes, monitoramento do sistema, consulta de logs e administração geral da plataforma. |
+
+
+
+### Justificativa
+
+A identificação dos ativos permite reconhecer quais recursos possuem maior valor para o funcionamento da plataforma e quais necessitam de maior nível de proteção. Ativos classificados como **Críticos** podem comprometer diretamente a segurança do sistema caso sejam violados, enquanto ativos classificados como **Alta** ou **Média** representam recursos importantes para a continuidade das operações e para a proteção dos dados dos usuários.
+
+Esses ativos servirão como base para a etapa de Modelagem de Ameaças (STRIDE), permitindo identificar possíveis vulnerabilidades relacionadas à autenticação, integridade dos dados, disponibilidade do sistema, confidencialidade das informações e controle de acesso.
 
 ## Visão Geral da Arquitetura
 Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão simplificada de como os usuários e componentes interagem dentro do sistema de delivery.
