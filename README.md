@@ -202,14 +202,39 @@ Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão s
 
 ## Modelagem de Ameaças (STRIDE)
 
-| ID | Categoria | Componente | Ameaça | Impacto |
-|----|-----------|------------|--------|---------|
-| T01 | Spoofing | | | |
-| T02 | Tampering | | | |
-| T03 | Repudiation | | | |
-| T04 | Information Disclosure | | | |
-| T05 | Denial of Service | | | |
-| T06 | Elevation of Privilege | | | |
+Esta seção aplica o modelo STRIDE ao **Bah Delivery**, relacionando cada ameaça identificada aos ativos descritos na seção *Usuários, Ativos e Pontos de Interação*. As ameaças foram organizadas em uma tabela por categoria, e os identificadores utilizam um prefixo correspondente à letra da categoria (**S**poofing, **T**ampering, **R**epudiation, **I**nformation Disclosure, **D**enial of Service e **E**levation of Privilege).
+
+### Spoofing — Falsificação de identidade
+
+O sistema possui quatro perfis distintos de usuário, e todas as operações relevantes dependem da correta identificação de quem as executa. Como o cadastro de restaurantes e entregadores concede acesso a dados pessoais de clientes, falhas na verificação de identidade permitem que um atacante assuma o papel de um usuário legítimo.
+
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| S01 | Credenciais de autenticação | Um atacante utiliza senhas vazadas de outros serviços para tentar acessar contas de clientes em massa (*credential stuffing*), pois o sistema não limita tentativas de login nem exige múltiplo fator de autenticação | Acesso ao histórico de pedidos, endereços residenciais e meios de pagamento salvos; realização de pedidos fraudulentos em nome da vítima |
+| S02 | API REST e sessões de usuário | O token de sessão é interceptado ou obtido pelo atacante e reutilizado para consumir a API como se fosse o usuário legítimo | O atacante executa qualquer operação permitida ao perfil da vítima sem conhecer a senha da conta |
+| S03 | Dados dos restaurantes | Um usuário mal-intencionado cadastra um restaurante inexistente, pois o sistema não valida CNPJ, alvará ou endereço do estabelecimento | Recebimento de pagamentos por pedidos que nunca serão entregues, coleta de dados pessoais de clientes e perda de confiança na plataforma |
+| S04 | Dados dos entregadores | Uma conta de entregador é compartilhada ou vendida e passa a ser utilizada por uma pessoa que nunca foi verificada pela plataforma | Uma pessoa não identificada recebe o endereço residencial dos clientes e retira pedidos nos estabelecimentos em nome de outro entregador |
+| S05 | Credenciais de autenticação | Envio de mensagens de *phishing* que imitam as notificações oficiais da plataforma, direcionando o cliente a uma página falsa de login | Captura das credenciais do cliente, viabilizando o acesso indevido descrito em S01 |
+
+### Tampering — Alteração indevida de dados
+
+*Em elaboração.*
+
+### Repudiation — Possibilidade de negar uma ação realizada
+
+*Em elaboração.*
+
+### Information Disclosure — Exposição indevida de informações
+
+*Reservado — Integrante 5.*
+
+### Denial of Service — Indisponibilidade ou degradação do serviço
+
+*Reservado — Integrante 5.*
+
+### Elevation of Privilege — Obtenção indevida de permissões
+
+*Reservado — Integrante 5.*
 
 ---
 
