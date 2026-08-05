@@ -231,7 +231,14 @@ O fluxo de compra do Bah Delivery envolve dados que circulam entre o navegador d
 
 ### Repudiation — Possibilidade de negar uma ação realizada
 
-*Em elaboração.*
+O Bah Delivery intermedeia relações entre partes que não se conhecem e que podem ter interesses conflitantes diante de um problema na entrega. Sem registros confiáveis e protegidos contra alteração, a plataforma não consegue determinar o que de fato ocorreu, e qualquer um dos envolvidos pode negar a ação que executou. O ativo **Logs do sistema**, já identificado como de criticidade alta, é o principal elemento de proteção contra essa categoria.
+
+| ID | Componente ou ativo | Ameaça identificada | Possível impacto |
+|----|---------------------|---------------------|------------------|
+| R01 | Logs do sistema e informações de pagamento | O cliente nega ter realizado um pedido e solicita o estorno da cobrança, e o sistema não mantém registro da operação com data, hora, endereço de origem e dispositivo utilizado | Perda financeira com estornos indevidos, sem que a plataforma disponha de evidência para contestar a alegação |
+| R02 | Histórico de entregas | O entregador nega ter retirado o pedido no restaurante ou tê-lo entregue ao cliente, pois a conclusão da entrega não exige comprovante, registro fotográfico ou geolocalização | Disputa entre cliente, restaurante e entregador sem qualquer elemento objetivo que permita atribuir responsabilidade |
+| R03 | Cardápios e pedidos | O restaurante nega ter alterado o preço de um produto ou ter cancelado um pedido, uma vez que o sistema não registra o histórico de alterações do cardápio nem a autoria dos cancelamentos | Conflito com o cliente, impossibilidade de apurar a conduta do estabelecimento e perda de confiança na plataforma |
+| R04 | Logs do sistema | Um administrador com acesso direto ao banco de dados apaga ou edita registros de log para ocultar operações que realizou | Eliminação das evidências de uso indevido, inviabilizando a auditoria e a responsabilização de quem detém maior privilégio no sistema |
 
 ### Information Disclosure — Exposição indevida de informações
 
@@ -314,4 +321,4 @@ O fluxo de compra do Bah Delivery envolve dados que circulam entre o navegador d
 | Guilherme Mundt | |
 | Lívia Barbosa | Modelagem de diagramas |
 | Mariana Padilha | Identificaçao e Descrição do Sistema |
-| Matheus Ciocca | |
+| Matheus Ciocca | Modelagem de ameaças STRIDE — Spoofing, Tampering e Repudiation |
