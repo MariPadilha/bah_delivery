@@ -2,9 +2,22 @@
 
 O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de pedidos e entregas de refeições, conectando diferentes perfis de usuário em um único ambiente digital. O sistema permite que clientes consultem cardápios, realizem pedidos e acompanhem o status das entregas, enquanto restaurantes podem administrar seus produtos, receber e organizar pedidos. Os entregadores possuem acesso às solicitações de entrega e informações necessárias para a execução do serviço, e os administradores são responsáveis pelo gerenciamento e controle geral da plataforma.
 
+---
 
+## Sumário
 
-## Identificação do Sistema
+1. [Identificação do Sistema](#1-identificação-do-sistema)
+2. [Descrição do Sistema](#2-descrição-do-sistema)
+3. [Usuários, Ativos e Pontos de Interação](#3-usuários-ativos-e-pontos-de-interação)
+4. [Visão Geral da Arquitetura](#4-visão-geral-da-arquitetura)
+5. [Modelagem de Ameaças (STRIDE)](#5-modelagem-de-ameaças-stride)
+6. [Casos de Abuso](#6-casos-de-abuso)
+7. [Considerações Finais](#7-considerações-finais)
+8. [Organização do Projeto](#8-organização-do-projeto)
+
+---
+
+## 1. Identificação do Sistema
 
 | Item | Descrição |
 |------|-----------|
@@ -13,118 +26,111 @@ O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de p
 | **Integrantes** | Arthur Medeiros, Emanuel Ferreira, Guilherme Mundt, Lívia Barbosa, Mariana Padilha e Matheus Ciocca |
 | **Repositório** | https://github.com/MariPadilha/bah_delivery |
 
-
-
-## Justificativa
+### Justificativa da Escolha do Sistema
 
 O sistema de delivery foi escolhido por representar uma aplicação real e amplamente utilizada, que envolve múltiplos usuários, processamento de pagamentos e armazenamento de dados sensíveis. Essas características possibilitam explorar diversos aspectos relacionados à segurança da informação e à modelagem de ameaças, atendendo aos objetivos da disciplina.
 
+---
 
+## 2. Descrição do Sistema
 
-## Problema que o sistema resolve
+### Problema que o Sistema Resolve
 
 O processo tradicional de pedidos de refeições frequentemente envolve comunicação fragmentada entre clientes, restaurantes e entregadores, podendo causar atrasos, erros nas solicitações e dificuldades no acompanhamento das entregas. O Bah Delivery busca solucionar esses problemas ao automatizar e organizar o fluxo de pedidos, centralizando as informações em uma única plataforma, reduzindo falhas de comunicação e proporcionando maior agilidade e transparência durante todo o processo de compra e entrega.
 
+### Perfis de Usuário
 
-
-## Perfis de Usuário
-
-### Cliente
+#### Cliente
 
 Usuário responsável pela realização de pedidos de refeições através da plataforma.
 
 **Principais funcionalidades:**
-    
-    - Cadastro e autenticação no sistema;
-    - Gerenciamento dos dados pessoais;
-    - Consulta de restaurantes disponíveis;
-    - Visualização de cardápios e produtos;
-    - Adição de produtos ao carrinho;
-    - Realização de pedidos;
-    - Seleção da forma de pagamento;
-    - Processamento e confirmação do pagamento;
-    - Acompanhamento do status dos pedidos;
-    - Consulta do histórico de pedidos;
-    - Avaliação de restaurantes e entregas.
 
-### Restaurante
+- Cadastro e autenticação no sistema;
+- Gerenciamento dos dados pessoais;
+- Consulta de restaurantes disponíveis;
+- Visualização de cardápios e produtos;
+- Adição de produtos ao carrinho;
+- Realização de pedidos;
+- Seleção da forma de pagamento;
+- Processamento e confirmação do pagamento;
+- Acompanhamento do status dos pedidos;
+- Consulta do histórico de pedidos;
+- Avaliação de restaurantes e entregas.
+
+#### Restaurante
 
 Usuário responsável pelo gerenciamento do estabelecimento, produtos e atendimento dos pedidos recebidos.
 
 **Principais funcionalidades:**
-    
-    - Cadastro e gerenciamento do restaurante;
-    - Gerenciamento do cardápio;
-    - Cadastro, edição e remoção de produtos;
-    - Visualização dos pedidos recebidos;
-    - Atualização do status dos pedidos;
-    - Consulta do histórico de pedidos recebidos.
 
-### Entregador
+- Cadastro e gerenciamento do restaurante;
+- Gerenciamento do cardápio;
+- Cadastro, edição e remoção de produtos;
+- Visualização dos pedidos recebidos;
+- Atualização do status dos pedidos;
+- Consulta do histórico de pedidos recebidos.
+
+#### Entregador
 
 Usuário responsável pela retirada e entrega dos pedidos aos clientes.
 
 **Principais funcionalidades:**
 
-    - Cadastro e autenticação no sistema;
-    - Visualização de entregas disponíveis;
-    - Aceitação de solicitações de entrega;
-    - Consulta das informações necessárias para entrega;
-    - Atualização do status da entrega;
-    - Consulta do histórico de entregas realizadas.
+- Cadastro e autenticação no sistema;
+- Visualização de entregas disponíveis;
+- Aceitação de solicitações de entrega;
+- Consulta das informações necessárias para entrega;
+- Atualização do status da entrega;
+- Consulta do histórico de entregas realizadas.
 
-### Administrador
+#### Administrador
 
 Usuário responsável pelo gerenciamento e controle geral da plataforma.
 
 **Principais funcionalidades:**
 
-    - Gerenciamento de usuários;
-    - Controle de permissões de acesso;
-    - Gerenciamento de restaurantes cadastrados;
-    - Monitoramento das atividades do sistema;
-    - Consulta de logs e registros da aplicação;
-    - Administração geral da plataforma.
+- Gerenciamento de usuários;
+- Controle de permissões de acesso;
+- Gerenciamento de restaurantes cadastrados;
+- Monitoramento das atividades do sistema;
+- Consulta de logs e registros da aplicação;
+- Administração geral da plataforma.
 
+### Principais Funcionalidades do Sistema
 
+- Cadastro e autenticação de usuários;
+- Controle de acesso baseado em perfis;
+- Gerenciamento de usuários e permissões;
+- Cadastro e gerenciamento de restaurantes;
+- Gerenciamento de cardápios e produtos;
+- Carrinho de compras;
+- Realização e gerenciamento de pedidos;
+- Processamento de pagamentos;
+- Registro e confirmação de transações;
+- Acompanhamento do fluxo de entrega;
+- Atualização de status dos pedidos;
+- Histórico de pedidos e entregas;
+- Avaliação de restaurantes;
+- Armazenamento e consulta de informações do sistema;
+- Registro de logs para auditoria e segurança.
 
-## Principais Funcionalidades do Sistema
-
-    - Cadastro e autenticação de usuários;
-    - Controle de acesso baseado em perfis;
-    - Gerenciamento de usuários e permissões;
-    - Cadastro e gerenciamento de restaurantes;
-    - Gerenciamento de cardápios e produtos;
-    - Carrinho de compras;
-    - Realização e gerenciamento de pedidos;
-    - Processamento de pagamentos;
-    - Registro e confirmação de transações;
-    - Acompanhamento do fluxo de entrega;
-    - Atualização de status dos pedidos;
-    - Histórico de pedidos e entregas;
-    - Avaliação de restaurantes;
-    - Armazenamento e consulta de informações do sistema;
-    - Registro de logs para auditoria e segurança.
-
-
-## Informações Armazenadas ou Transmitidas
+### Informações Armazenadas ou Transmitidas
 
 O sistema manipula diferentes tipos de informações durante sua operação, incluindo:
 
-    - Dados pessoais dos usuários;
-    - Endereços de entrega;
-    - Credenciais de autenticação;
-    - Dados dos restaurantes;
-    - Cardápios;
-    - Pedidos;
-    - Histórico de pedidos;
-    - Avaliações;
-    - Informações sobre pagamentos;
-    - Logs do sistema.
+- Dados pessoais dos usuários;
+- Endereços de entrega;
+- Credenciais de autenticação;
+- Dados dos restaurantes;
+- Cardápios;
+- Pedidos;
+- Histórico de pedidos;
+- Avaliações;
+- Informações sobre pagamentos;
+- Logs do sistema.
 
-
-
-## Recursos que Precisam ser Protegidos
+### Recursos que Precisam ser Protegidos
 
 Os principais recursos que necessitam de proteção no **Bah Delivery** são:
 
@@ -143,9 +149,9 @@ Os principais recursos que necessitam de proteção no **Bah Delivery** são:
 
 A proteção desses recursos é essencial para garantir a confidencialidade, integridade e disponibilidade das informações processadas pelo sistema, assegurando que apenas usuários autorizados tenham acesso aos recursos da plataforma.
 
+---
 
-
-## Usuários, Ativos e Pontos de Interação
+## 3. Usuários, Ativos e Pontos de Interação
 
 ### Usuários
 
@@ -153,8 +159,6 @@ A proteção desses recursos é essencial para garantir a confidencialidade, int
 - Restaurante
 - Entregador
 - Administrador
-
-
 
 ### Ativos
 
@@ -174,8 +178,6 @@ A proteção desses recursos é essencial para garantir a confidencialidade, int
 | Servidor da aplicação | Infraestrutura responsável pela execução do sistema. | Crítica |
 | Controle de permissões | Responsável pela autorização de acesso conforme o perfil do usuário. | Crítica |
 
-
-
 ### Pontos de Interação
 
 | Usuário | Pontos de interação |
@@ -185,22 +187,23 @@ A proteção desses recursos é essencial para garantir a confidencialidade, int
 | Entregador | Login, visualização das entregas disponíveis, aceitação de pedidos, consulta dos dados da entrega, atualização do status e histórico de entregas. |
 | Administrador | Gerenciamento de usuários, controle de permissões, gerenciamento de restaurantes, monitoramento do sistema, consulta de logs e administração geral da plataforma. |
 
-
-
-### Justificativa
+### Justificativa da Classificação
 
 A identificação dos ativos permite reconhecer quais recursos possuem maior valor para o funcionamento da plataforma e quais necessitam de maior nível de proteção. Ativos classificados como **Críticos** podem comprometer diretamente a segurança do sistema caso sejam violados, enquanto ativos classificados como **Alta** ou **Média** representam recursos importantes para a continuidade das operações e para a proteção dos dados dos usuários.
 
 Esses ativos servirão como base para a etapa de Modelagem de Ameaças (STRIDE), permitindo identificar possíveis vulnerabilidades relacionadas à autenticação, integridade dos dados, disponibilidade do sistema, confidencialidade das informações e controle de acesso.
 
-## Visão Geral da Arquitetura
+---
+
+## 4. Visão Geral da Arquitetura
+
 Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão simplificada de como os usuários e componentes interagem dentro do sistema de delivery.
 
 - [Diagrama de Casos de Uso](./diagramas/diagrama-caso-de-uso.png)
 
 ---
 
-## Modelagem de Ameaças (STRIDE)
+## 5. Modelagem de Ameaças (STRIDE)
 
 Esta seção aplica o modelo STRIDE ao **Bah Delivery**, relacionando cada ameaça identificada aos ativos descritos na seção *Usuários, Ativos e Pontos de Interação*. As ameaças foram organizadas em uma tabela por categoria, e os identificadores utilizam um prefixo correspondente à letra da categoria (**S**poofing, **T**ampering, **R**epudiation, **I**nformation Disclosure, **D**enial of Service e **E**levation of Privilege).
 
@@ -284,71 +287,250 @@ O sistema define quatro perfis com poderes bastante distintos, e o ativo **Contr
 
 ---
 
-## Casos de Abuso
+## 6. Casos de Abuso
 
-### CA01
+Enquanto a modelagem STRIDE identifica ameaças de forma isolada, os casos de abuso descrevem como essas ameaças se combinam em cenários concretos de ataque. Cada caso apresenta o percurso completo de um agente mal-intencionado — que pode ser um atacante externo, um usuário indevido ou até mesmo um usuário legítimo da plataforma — desde as condições que tornam o abuso possível até o impacto produzido.
 
-**Título**
+Os casos foram construídos a partir das ameaças descritas na seção anterior, e cada um indica explicitamente os identificadores STRIDE que o sustentam, permitindo rastrear a origem de cada cenário. Não se pretendeu cobrir individualmente as 36 ameaças levantadas: foram selecionadas as combinações consideradas mais representativas em termos de probabilidade e impacto, assegurando que as seis categorias do STRIDE e os quatro perfis de usuário estivessem contemplados.
 
--
+### Visão Geral dos Casos de Abuso
 
-**Ator**
+| ID | Título | Ator | Categorias STRIDE |
+|----|--------|------|-------------------|
+| CA01 | Sequestro de conta de cliente para fraude em pedidos | Atacante externo | Spoofing e Information Disclosure |
+| CA02 | Cadastro de restaurante fantasma para captura de pagamentos | Usuário mal-intencionado | Spoofing e Information Disclosure |
+| CA03 | Manipulação do valor do pedido antes do pagamento | Cliente autenticado | Tampering |
+| CA04 | Confirmação fraudulenta de entrega não realizada | Entregador cadastrado | Tampering e Repudiation |
+| CA05 | Coleta em massa de dados de clientes por manipulação de identificadores | Cliente autenticado | Information Disclosure |
+| CA06 | Sabotagem operacional de restaurante em horário de pico | Concorrente ou atacante externo | Denial of Service |
+| CA07 | Elevação de privilégio para obtenção de acesso administrativo | Cliente autenticado | Elevation of Privilege |
+| CA08 | Abuso de privilégio administrativo com supressão de evidências | Administrador da plataforma | Elevation of Privilege e Repudiation |
 
--
+### CA01 — Sequestro de conta de cliente para fraude em pedidos
 
-**Objetivo**
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Atacante externo, sem vínculo com a plataforma |
+| **Objetivo** | Assumir a identidade de um cliente legítimo para realizar pedidos fraudulentos e acessar seus dados pessoais e meios de pagamento |
+| **Condições necessárias** | O sistema não limita tentativas de login nem exige múltiplo fator de autenticação; as telas de login e de recuperação de senha distinguem "e-mail não cadastrado" de "senha incorreta"; a comunicação entre o navegador e a API não é protegida adequadamente por TLS |
+| **Impacto esperado** | Prejuízo financeiro direto ao cliente, exposição de dados pessoais e de endereço residencial, e uso da conta comprometida como base para novas fraudes na plataforma |
+| **Ameaças relacionadas** | S01, S02, I04 e I08 |
+| **Categorias STRIDE** | Spoofing e Information Disclosure |
 
--
+**Sequência de ações**
 
-**Condições**
+1. O atacante explora a diferenciação das mensagens de erro para confirmar quais endereços de e-mail possuem conta na plataforma, construindo uma lista de alvos válidos.
+2. Sobre essa lista, testa de forma automatizada credenciais vazadas de outros serviços, sem que o sistema limite as tentativas ou exija um segundo fator de autenticação.
+3. Ao obter acesso a uma conta, consulta o histórico de pedidos e obtém o endereço residencial, o telefone e os meios de pagamento salvos da vítima.
+4. Alternativamente, em uma rede compartilhada, intercepta o token de sessão de um cliente já autenticado e o reutiliza, dispensando o conhecimento da senha.
+5. Com a sessão ativa, realiza pedidos custeados pelos meios de pagamento salvos, direcionando as entregas para endereços de sua escolha.
 
--
+### CA02 — Cadastro de restaurante fantasma para captura de pagamentos
 
-**Fluxo**
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Usuário mal-intencionado, sem estabelecimento real |
+| **Objetivo** | Receber pagamentos por pedidos que nunca serão preparados nem entregues e coletar dados pessoais dos clientes atraídos |
+| **Condições necessárias** | O cadastro de restaurante é aceito sem validação de CNPJ, alvará ou endereço do estabelecimento; o restaurante recebe o cadastro completo do cliente a cada pedido |
+| **Impacto esperado** | Prejuízo financeiro aos clientes, formação de uma base de dados pessoais obtida de forma fraudulenta e perda de confiança na plataforma como intermediária das transações |
+| **Ameaças relacionadas** | S03 e I03 |
+| **Categorias STRIDE** | Spoofing e Information Disclosure |
 
-1.
-2.
-3.
+**Sequência de ações**
 
-**Impacto**
+1. O atacante cria uma conta de restaurante com dados fictícios ou pertencentes a terceiros, e o cadastro é aprovado sem qualquer verificação.
+2. Publica um cardápio com preços abaixo do praticado no mercado, de modo a atrair pedidos rapidamente.
+3. Clientes realizam pedidos e efetuam o pagamento, que é processado e confirmado normalmente pela plataforma.
+4. A cada pedido recebido, o atacante coleta o cadastro completo do cliente, incluindo CPF, telefone e endereço de entrega.
+5. Os pedidos nunca são preparados, ou são marcados como concluídos sem qualquer participação de um entregador real.
+6. O atacante abandona a conta antes que o volume de reclamações resulte em bloqueio, e repete o processo sob um novo cadastro.
 
--
+### CA03 — Manipulação do valor do pedido antes do pagamento
 
-**Categorias STRIDE**
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Cliente autenticado com intenção maliciosa |
+| **Objetivo** | Pagar por um pedido valor inferior ao efetivamente devido |
+| **Condições necessárias** | O valor total do pedido é calculado no navegador e aceito pelo servidor sem recálculo; o pedido referencia o cardápio em vez de registrar o preço praticado no momento da compra |
+| **Impacto esperado** | Prejuízo financeiro direto ao restaurante e à plataforma, que entregam o produto por valor inferior ao devido, com possibilidade de repetição em escala enquanto a falha não for corrigida |
+| **Ameaças relacionadas** | T01 e T03 |
+| **Categorias STRIDE** | Tampering |
 
--
+**Sequência de ações**
+
+1. O atacante monta um carrinho normalmente e observa a requisição enviada ao servidor no momento de fechar o pedido.
+2. Antes do envio, altera o valor total da compra ou o preço unitário dos itens para uma quantia significativamente menor.
+3. O servidor aceita o valor recebido sem recalculá-lo a partir do cardápio e encaminha o pedido para o pagamento.
+4. O pagamento é processado e confirmado, e o pedido segue para preparo e entrega pelo valor adulterado.
+5. Como o pedido apenas referencia o cardápio, sem preservar o preço praticado, a divergência não fica evidente no registro da transação.
+
+### CA04 — Confirmação fraudulenta de entrega não realizada
+
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Entregador cadastrado na plataforma |
+| **Objetivo** | Receber o valor referente à entrega sem efetivamente entregar o pedido ao cliente |
+| **Condições necessárias** | A atualização do status da entrega não exige comprovante, registro fotográfico, código de confirmação ou geolocalização; a conclusão da entrega libera o pagamento automaticamente |
+| **Impacto esperado** | Cliente lesado sem receber o produto pago, disputa entre as três partes sem elementos objetivos que permitam atribuir responsabilidade e desgaste da reputação da plataforma |
+| **Ameaças relacionadas** | T04 e R02 |
+| **Categorias STRIDE** | Tampering e Repudiation |
+
+**Sequência de ações**
+
+1. O entregador aceita a solicitação e retira o pedido no restaurante normalmente.
+2. Em vez de realizar a entrega, atualiza o status do pedido para "entregue" diretamente pelo aplicativo.
+3. Como o sistema não exige nenhuma evidência da entrega, a atualização é aceita sem contestação.
+4. O pagamento é liberado ao entregador e ao restaurante, e o pedido é encerrado como concluído.
+5. Ao ser questionado pela reclamação do cliente, o entregador nega a irregularidade, e a ausência de registros objetivos impede apurar o que de fato ocorreu.
+
+### CA05 — Coleta em massa de dados de clientes por manipulação de identificadores
+
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Cliente autenticado com intenção maliciosa |
+| **Objetivo** | Obter pedidos, endereços e dados pessoais de outros clientes da plataforma |
+| **Condições necessárias** | Os endpoints identificam pedidos, endereços e avaliações por identificadores sequenciais; as requisições não verificam se o registro solicitado pertence ao usuário autenticado |
+| **Impacto esperado** | Vazamento em larga escala de dados pessoais, endereços residenciais e histórico de consumo, com violação de privacidade dos clientes e exposição da plataforma a sanções legais |
+| **Ameaças relacionadas** | I01 e I02 |
+| **Categorias STRIDE** | Information Disclosure |
+
+**Sequência de ações**
+
+1. O atacante realiza um pedido legítimo e observa o identificador numérico atribuído a ele nas requisições da API.
+2. Altera manualmente esse identificador para valores próximos e reenvia a requisição utilizando a sua própria sessão válida.
+3. Como o servidor confirma apenas que existe um usuário autenticado, sem verificar a quem pertence o registro, os dados de outros clientes são retornados normalmente.
+4. O atacante automatiza a variação do identificador e percorre toda a faixa de registros existentes na base.
+5. Os dados coletados são armazenados fora da plataforma e podem ser revendidos ou utilizados para viabilizar os ataques descritos em CA01.
+
+### CA06 — Sabotagem operacional de restaurante em horário de pico
+
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Concorrente ou atacante externo |
+| **Objetivo** | Inviabilizar a operação de um restaurante específico durante o período de maior demanda |
+| **Condições necessárias** | O sistema não limita a quantidade de pedidos simultâneos por cliente; os pedidos são encaminhados ao restaurante antes da confirmação do pagamento; os endpoints públicos não possuem limitação de requisições |
+| **Impacto esperado** | Prejuízo financeiro e operacional ao restaurante, perda de vendas para a plataforma no horário mais rentável e dano à reputação do estabelecimento perante os clientes |
+| **Ameaças relacionadas** | D01 e D02 |
+| **Categorias STRIDE** | Denial of Service |
+
+**Sequência de ações**
+
+1. O atacante cria diversas contas de cliente, aproveitando a ausência de verificação no cadastro.
+2. No horário de maior movimento, dispara simultaneamente um grande volume de pedidos ao restaurante-alvo, sem concluir os pagamentos.
+3. O restaurante recebe as solicitações e inicia o preparo, pois a plataforma as encaminha antes da confirmação do pagamento.
+4. A capacidade de produção do estabelecimento é integralmente consumida por pedidos que nunca serão pagos nem retirados.
+5. Clientes legítimos encontram o restaurante indisponível ou enfrentam atrasos, e os insumos utilizados no preparo são desperdiçados.
+
+### CA07 — Elevação de privilégio para obtenção de acesso administrativo
+
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Cliente autenticado com intenção maliciosa |
+| **Objetivo** | Obter permissões de administrador e assumir o controle da plataforma |
+| **Condições necessárias** | O perfil do usuário é recebido como campo da requisição e gravado sem validação no servidor; a restrição de acesso é aplicada apenas na interface; o token de sessão carrega o perfil sem verificação adequada da assinatura |
+| **Impacto esperado** | Comprometimento total da plataforma, com acesso irrestrito aos dados de todos os usuários e capacidade de manter o acesso e apagar os vestígios da invasão |
+| **Ameaças relacionadas** | E01, E02 e E03 |
+| **Categorias STRIDE** | Elevation of Privilege |
+
+**Sequência de ações**
+
+1. O atacante intercepta a requisição de atualização do próprio cadastro e altera o campo que define seu perfil de "cliente" para "administrador".
+2. Como o servidor grava o valor recebido sem validá-lo, a alteração é efetivada sem qualquer aprovação da plataforma.
+3. Caso esse caminho falhe, invoca diretamente as rotas de gerenciamento de usuários e de restaurantes, que não verificam o papel do usuário autenticado por confiarem na ocultação feita pela interface.
+4. Como alternativa, forja um token de sessão com perfil administrativo, explorando a ausência de verificação da assinatura ou o uso de um segredo previsível.
+5. De posse do acesso administrativo, consulta os dados de todos os usuários, altera as permissões de contas sob seu controle e acessa os registros de auditoria.
+
+### CA08 — Abuso de privilégio administrativo com supressão de evidências
+
+| Item | Descrição |
+|------|-----------|
+| **Ator** | Administrador com acesso legítimo à plataforma |
+| **Objetivo** | Utilizar o próprio nível de privilégio para fins indevidos e eliminar os registros que permitiriam identificá-lo |
+| **Condições necessárias** | O perfil de administrador concentra todas as capacidades do sistema, sem segregação de funções; a alteração de permissões não exige reautenticação nem gera registro de auditoria; os administradores possuem acesso direto ao banco de dados onde os logs são armazenados |
+| **Impacto esperado** | Abuso continuado de privilégio sem possibilidade de detecção ou responsabilização, comprometendo a confiabilidade de todo o mecanismo de auditoria e de controle de acesso |
+| **Ameaças relacionadas** | E05, E06 e R04 |
+| **Categorias STRIDE** | Elevation of Privilege e Repudiation |
+
+**Sequência de ações**
+
+1. O administrador consulta dados de pagamento e informações pessoais de clientes sem qualquer justificativa operacional, o que é possível porque o perfil não separa as capacidades administrativas.
+2. Concede privilégios administrativos a uma segunda conta sob seu controle, sem que a mudança exija reautenticação ou gere alerta.
+3. Acessa diretamente o banco de dados e apaga ou edita os registros de log referentes às suas próprias ações.
+4. Passa a operar pela conta secundária, mantendo o acesso mesmo que a conta original venha a ser revista.
+5. Sem registros íntegros, a plataforma não consegue reconstituir os fatos nem atribuir responsabilidade a quem os praticou.
 
 ---
 
-## Considerações Finais
+## 7. Considerações Finais
 
-### Principais ameaças
+### Principais Ameaças
 
--
+A análise das seis categorias do STRIDE evidenciou que as ameaças mais preocupantes do Bah Delivery não decorrem de técnicas sofisticadas de ataque, mas de decisões de projeto que depositam confiança indevida em informações controladas pelo usuário. As ameaças a seguir foram consideradas prioritárias por combinarem alta probabilidade de ocorrência com impacto elevado.
 
-### Ativos críticos
+| Ameaça | Motivo da priorização |
+|--------|-----------------------|
+| E01, E02 e E03 — Autorização decidida fora do servidor | Comprometem simultaneamente todos os demais controles: uma vez obtido o perfil de administrador, nenhuma outra proteção da plataforma permanece efetiva |
+| I01 — Ausência de verificação de propriedade dos registros | Permite o vazamento de toda a base de clientes a partir de uma conta comum, sem exigir qualquer conhecimento técnico avançado |
+| I05 — Armazenamento inseguro de senhas e dados de pagamento | Transforma um único acesso indevido ao banco de dados no comprometimento definitivo de todos os usuários da plataforma |
+| T01 — Confiança em valores calculados no cliente | Produz prejuízo financeiro direto e recorrente, e atinge simultaneamente os restaurantes e a plataforma |
+| S01 — Ausência de limitação de tentativas e de múltiplo fator | Viabiliza o comprometimento de contas em massa e serve de porta de entrada para a maior parte dos demais cenários |
+| R02 e R04 — Ausência de registros íntegros das operações | Impede não apenas a responsabilização após um incidente, mas a própria constatação de que o incidente ocorreu |
 
--
+### Ativos Críticos
 
-### Casos de abuso de maior impacto
+Os ativos classificados como **Críticos** na seção *Usuários, Ativos e Pontos de Interação* concentram a maior parte das ameaças identificadas e concentram, por consequência, a necessidade de proteção:
 
--
+- **Controle de permissões** — é o mecanismo que separa um cliente de um administrador capaz de gerenciar toda a plataforma, e figura em todas as ameaças de Elevation of Privilege;
+- **Credenciais de autenticação** — sustentam a identidade de todos os perfis, e seu comprometimento habilita ataques em todas as demais categorias;
+- **Banco de dados** — reúne em um único ponto os dados pessoais, os pedidos, as credenciais e os registros de auditoria do sistema;
+- **Informações de pagamento** — representam o ativo de maior interesse econômico para um atacante e o de maior consequência legal em caso de vazamento;
+- **Servidor da aplicação** — sua indisponibilidade interrompe simultaneamente a operação de clientes, restaurantes e entregadores.
 
-### Dificuldades encontradas
+Os **Logs do sistema**, ainda que classificados como de criticidade alta, merecem destaque por sua natureza dupla: são o principal instrumento de proteção contra a categoria Repudiation, mas passam a constituir um ativo sensível adicional quando registram dados que não deveriam armazenar, conforme descrito na ameaça I07.
 
--
+### Casos de Abuso de Maior Impacto
+
+| Caso | Justificativa |
+|------|---------------|
+| CA07 — Elevação de privilégio para acesso administrativo | É o cenário de maior severidade, pois anula todas as demais proteções de uma só vez e abre caminho para o CA08 |
+| CA05 — Coleta em massa de dados de clientes | Produz o maior volume de dano por esforço investido: uma conta comum e uma requisição repetida bastam para expor toda a base de clientes |
+| CA08 — Abuso de privilégio administrativo com supressão de evidências | Combina dano direto com a eliminação da capacidade de detecção, o que o torna potencialmente permanente e não mensurável |
+| CA01 — Sequestro de conta de cliente | É o cenário de maior probabilidade de ocorrência, por depender apenas de credenciais já disponíveis publicamente em vazamentos anteriores |
+
+### Possíveis Medidas de Proteção
+
+Ainda que a proposta de soluções não seja obrigatória nesta etapa, o grupo registra as direções de mitigação que considera mais pertinentes para as ameaças priorizadas:
+
+| Categoria | Medidas indicadas |
+|-----------|-------------------|
+| Spoofing | Limitação de tentativas de login, múltiplo fator de autenticação, mensagens de erro genéricas e verificação documental no cadastro de restaurantes e entregadores |
+| Tampering | Recálculo de valores no servidor, registro do preço praticado no momento da compra e exigência de evidência para a conclusão da entrega |
+| Repudiation | Registro de auditoria imutável, com retenção definida e acesso segregado do perfil administrativo |
+| Information Disclosure | Verificação de propriedade dos registros a cada requisição, TLS obrigatório, hash com *salt* para senhas e entrega a cada perfil apenas dos dados necessários à sua tarefa |
+| Denial of Service | Limitação de requisições por origem, paginação obrigatória nas consultas, confirmação de pagamento antes do envio ao restaurante e limite de entregas simultâneas por entregador |
+| Elevation of Privilege | Autorização verificada no servidor a cada requisição, perfil nunca aceito como campo da requisição, segregação de funções administrativas e registro de toda alteração de permissão |
+
+### Dificuldades Encontradas
+
+Durante a elaboração deste trabalho, o grupo enfrentou as seguintes dificuldades:
+
+- **Analisar a segurança de um sistema não implementado.** Sem código, banco de dados ou infraestrutura definidos, foi necessário assumir hipóteses sobre o funcionamento da plataforma para que as ameaças fossem concretas, evitando descrições genéricas que serviriam a qualquer sistema.
+- **Distinguir ameaça, vulnerabilidade e caso de abuso.** A separação entre o que o atacante deseja obter, a falha que permite obtê-lo e o percurso completo do ataque exigiu diversas revisões até que as seções ficassem coerentes entre si.
+- **Delimitar a fronteira entre as categorias do STRIDE.** Várias ameaças poderiam ser classificadas em mais de uma categoria — como a diferença entre assumir a identidade de outro usuário (*Spoofing*) e ampliar os próprios privilégios (*Elevation of Privilege*), ou entre alterar um registro (*Tampering*) e negar tê-lo alterado (*Repudiation*). O critério adotado foi classificar pela consequência principal da ameaça e registrar as relações cruzadas nos casos de abuso.
+- **Reconhecer usuários legítimos como agentes de ameaça.** A tendência inicial foi concentrar a análise em atacantes externos. Reconhecer que o restaurante, o entregador e o próprio administrador podem ser a origem do abuso ampliou significativamente a análise e originou alguns dos casos de maior impacto.
+- **Classificar a criticidade dos ativos sem dados de operação real.** A ausência de informações sobre volume de usuários, faturamento e requisitos regulatórios tornou a classificação dependente do julgamento do grupo, tendo sido adotado o critério do dano potencial em caso de comprometimento.
 
 ---
 
-## Organização do Projeto
+## 8. Organização do Projeto
 
 ### Etapa 1
 
 | Integrante | Responsabilidades |
-|------------|------------------|
+|------------|-------------------|
 | Arthur Medeiros | Identificação dos usuários, ativos e pontos de interação |
-| Emanuel Ferreira | |
-| Guilherme Mundt | | Modelagem de ameaças STRIDE (Information Disclosure, Danial of Service e Elevation of Privilege)
+| Emanuel Ferreira | Elaboração dos casos de abuso  |
+| Guilherme Mundt | Modelagem de ameaças STRIDE (Information Disclosure, Denial of Service e Elevation of Privilege) |
 | Lívia Barbosa | Modelagem de diagramas |
-| Mariana Padilha | Identificaçao e Descrição do Sistema |
+| Mariana Padilha | Identificação e descrição do sistema |
 | Matheus Ciocca | Modelagem de ameaças STRIDE (Spoofing, Tampering e Repudiation) |
