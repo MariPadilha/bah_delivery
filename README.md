@@ -199,8 +199,8 @@ Esses ativos servirão como base para a etapa de Modelagem de Ameaças (STRIDE),
 
 Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão simplificada de como os usuários e componentes interagem dentro do sistema de delivery.
 
-- [Diagrama de Casos de Uso](./diagramas/diagrama-caso-de-uso.png)
-- [Diagrama de Contexto](./diagramas/diagrama-de-contexto.jpg)
+- [Diagrama de Casos de Uso](./diagramas/diagrama-casos-de-uso.png)
+- [Diagrama de Contexto](./diagramas/diagrama-de-contexto.png)
 
 ---
 
