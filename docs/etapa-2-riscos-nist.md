@@ -430,6 +430,61 @@ O mapeamento indica quais funções são relevantes para o tratamento de cada ri
 | R16 | Alto | — | X | X | X | X | — |
 | R17 | Alto | X | X | X | X | X | X |
 
+#### Justificativa das marcações
+
+**R01 — Comprometimento da conta de um cliente.** *Govern* é marcada porque exigir autenticação multifator de clientes é uma decisão de negócio, que pondera o atrito no acesso contra a proteção da conta, e precisa de um responsável. *Identify* não é marcada: o ativo e o fluxo de autenticação já foram descritos na Etapa 1, não restando levantamento pendente. *Detect* corresponde à percepção de tentativas repetidas e de acesso a partir de dispositivo não reconhecido; *Respond*, ao bloqueio da conta e à revogação das sessões; *Recover*, à devolução do acesso ao titular e ao estorno dos pedidos realizados indevidamente.
+
+**R02 — Uso indevido de sessão por token comprometido.** É a linha mais restrita do mapeamento. *Govern* não é marcada porque a política de autenticação que rege a sessão é a mesma decidida em R01, e repeti-la aqui seria duplicação. *Identify* não é marcada pela ausência de levantamento pendente. *Recover* não é marcada porque revogar o token é ação de contenção, e não de restauração: encerrada a sessão, não resta estado a recompor além do que já é tratado em R01.
+
+**R03 — Cadastro de restaurante inexistente.** *Govern* é marcada porque os requisitos de verificação do estabelecimento — quais documentos são exigidos, quem aprova o cadastro e o que ocorre em caso de recusa — constituem política, e não configuração. *Identify* não é marcada porque o fluxo de cadastro já é conhecido. *Detect* não se refere ao momento do cadastro, e sim aos padrões operacionais anômalos que o estabelecimento fraudulento produz depois, como cancelamentos sucessivos e pedidos não entregues.
+
+**R04 — Manipulação do valor do pedido.** *Identify* é marcada porque é necessário levantar quais operações hoje aceitam valores calculados no cliente, e esse conjunto ainda não está determinado. *Govern* não é marcada porque validar o valor no servidor não envolve decisão que preceda a implementação. *Detect* corresponde ao registro da divergência entre o valor recalculado pelo servidor e o valor recebido.
+
+**R05 — Alteração indevida de informações de entrega.** Nem *Govern* nem *Identify* são marcadas: o fluxo de entrega já está descrito na Etapa 1 e o tratamento consiste em autorização e validação, sem decisão prévia pendente. *Detect* corresponde à percepção de mudanças de estado fora da sequência esperada da entrega, e *Recover*, à restauração das informações corretas.
+
+**R06 — Impossibilidade de atribuir responsabilidade.** É o único risco sem *Respond* e um dos poucos sem *Recover*. *Govern* trata da política de auditoria: quais ações devem ser registradas, por quanto tempo e quem responde pela integridade dos registros. *Identify* corresponde ao levantamento das ações que hoje não são registradas. *Detect* refere-se ao monitoramento da própria geração dos registros, isto é, à percepção de lacunas e falhas na cadeia. *Respond* não é marcada porque R06 não produz um incidente a ser contido: ele degrada a capacidade de resposta de todos os demais riscos. *Recover* não é marcada porque um registro que não foi gerado não pode ser reconstituído posteriormente, o que torna o tratamento deste risco necessariamente preventivo.
+
+**R07 — Exposição indevida de dados de clientes.** Reúne as seis funções. *Govern* corresponde à classificação e à minimização dos dados pessoais e às obrigações decorrentes da legislação de proteção de dados. *Identify* exige o mapeamento dos pontos da aplicação que retornam dados de clientes. *Recover* é marcada com ressalva: a confidencialidade perdida não é restaurável, de modo que a função se limita ao encerramento dos acessos indevidos e à comunicação aos titulares afetados e à autoridade competente.
+
+**R08 — Comprometimento de credenciais e dados sensíveis armazenados.** Reúne as seis funções. *Govern* corresponde à política de criptografia e de custódia de segredos, incluindo quem detém as chaves. *Identify* exige o inventário dos locais em que credenciais e informações sensíveis são armazenadas. *Recover* é marcada porque a rotação forçada das credenciais e a reemissão das chaves restabelecem um estado seguro, ainda que não desfaçam a exposição já ocorrida.
+
+**R09 — Indisponibilidade da plataforma.** Reúne as seis funções. *Govern* é marcada de forma especialmente clara porque a estratégia definida na seção 3.2 inclui compartilhar, o que exige decidir, contratar e acompanhar um serviço especializado de proteção, além de estabelecer metas de disponibilidade. *Identify* corresponde ao levantamento dos componentes críticos e dos pontos únicos de falha.
+
+**R10 — Interrupção de operações de restaurantes e entregas.** *Govern* e *Identify* não são marcadas porque as operações afetadas já foram identificadas na Etapa 1 e o tratamento não depende de decisão anterior. As demais funções aplicam-se integralmente, uma vez que o evento é observável, contornável e reversível.
+
+**R11 — Obtenção indevida de privilégios administrativos.** Reúne as seis funções. *Govern* é o núcleo do tratamento: definir quem pode ser administrador, mediante qual aprovação e com que periodicidade a concessão é revista. *Identify* corresponde ao inventário das permissões vigentes e das contas que hoje as detêm. *Recover* abrange a revogação dos privilégios obtidos e a reversão das alterações administrativas realizadas.
+
+**R12 — Abuso de privilégios administrativos com ocultação.** *Govern* trata da segregação de funções e da definição de quem audita o administrador, que é exatamente o ponto do risco: sem essa separação, o agente audita a si mesmo. *Identify* não é marcada porque o levantamento das ações sensíveis é o mesmo já realizado em R06 e não se repete aqui.
+
+**R13 — Injeção de comandos nas consultas da aplicação.** Reúne as seis funções, apesar de a estratégia ser evitar. *Govern* é marcada porque eliminar a condição exige um padrão de codificação que torne obrigatória a consulta parametrizada em toda a aplicação, e não apenas nos trechos já conhecidos. *Identify* é indispensável: sem o inventário completo das consultas dinâmicas, não é possível afirmar que a condição foi eliminada. *Recover* corresponde à restauração da integridade do banco de dados a partir de cópia de segurança.
+
+**R14 — Captura de credenciais e dados em trânsito.** *Identify* corresponde ao levantamento dos pontos de comunicação sem proteção adequada e das respostas de autenticação que diferenciam conta existente de inexistente. *Govern* não é marcada porque o tratamento é de configuração e padronização, sem decisão que o preceda. *Detect* é marcada com ressalva relevante: a interceptação ocorre fora da plataforma e não é observável por ela, de modo que o que se detecta é a enumeração de contas que costuma precedê-la.
+
+**R15 — Distorção de preços e avaliações após a confirmação do pedido.** *Govern* não é marcada porque a regra de alteração de preços é comercial e se implementa na própria aplicação, sem constituir decisão de segurança prévia. *Identify* também não é marcada, pois os pontos afetados já decorrem das ameaças T03 e T06. *Detect* corresponde à percepção de alteração de preço de item com pedido em aberto e de avaliação sem pedido correspondente.
+
+**R16 — Acesso a dados por identidade não verificada ou perfil sem escopo delimitado.** *Identify* é marcada porque é necessário mapear qual perfil acessa qual escopo de informação, levantamento que ainda não existe. *Govern* não é marcada porque a política de privilégios aplicável é a mesma tratada em R11. *Recover* não é marcada porque, diferentemente de R07, o alcance é pontual e nenhum estado do sistema é alterado: encerrar o acesso e revisar o escopo do perfil esgota o tratamento.
+
+**R17 — Esgotamento de recursos por mensagens e uploads.** Reúne as seis funções. *Govern* é marcada porque a estratégia inclui compartilhar, exigindo a contratação do armazenamento externo, e porque a definição das cotas por usuário é decisão de produto. *Identify* corresponde ao levantamento das funções que hoje não possuem limite de uso. *Recover* abrange a liberação do armazenamento indevidamente consumido e o retorno da capacidade normal.
+
+#### Observações sobre a distribuição das funções
+
+| Função | Riscos marcados | Total |
+|---|---|---:|
+| Govern | R01, R03, R06, R07, R08, R09, R11, R12, R13, R17 | 10 |
+| Identify | R04, R06, R07, R08, R09, R11, R13, R14, R16, R17 | 10 |
+| Protect | Todos os riscos | 17 |
+| Detect | Todos os riscos | 17 |
+| Respond | Todos, exceto R06 | 16 |
+| Recover | Todos, exceto R02, R06 e R16 | 14 |
+
+*Protect* aparece em todos os riscos como consequência direta da seção 3.2: todas as estratégias escolhidas foram reduzir ou evitar, e ambas dependem de salvaguarda preventiva. Caso algum risco tivesse sido aceito, a função não seria marcada naquela linha. *Detect* também aparece em todos os riscos porque cada evento produz algum sinal observável na plataforma, ainda que em R14 esse sinal seja apenas o precursor do evento, e não o evento em si.
+
+A diferenciação efetiva do mapeamento ocorre, portanto, em *Govern*, *Identify*, *Respond* e *Recover*, que somam 50 marcações em 68 possíveis. Dos 102 cruzamentos entre riscos e funções, 84 foram marcados e 18 foram descartados com justificativa própria.
+
+Os riscos que reúnem as seis funções são R07, R08, R09, R11, R13 e R17. Cinco deles são exatamente os riscos de nível crítico do registro, o que é coerente com a priorização estabelecida na seção 2.3: quanto mais central o ativo atingido, mais amplo o conjunto de resultados de segurança necessários. A linha mais restrita é a de R02, com três funções, em razão do alcance limitado e da reversibilidade da sessão comprometida.
+
+As funções indicadas nesta seção descrevem apenas os resultados esperados. Os controles concretos, os responsáveis e as evidências de verificação correspondentes a cada risco são definidos no plano de tratamento.
+
 ---
 
 ## 4. Distribuição Integrante X Responsabilidades
