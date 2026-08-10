@@ -112,6 +112,10 @@ A classificação final de cada risco será definida após a atribuição de pro
 
 Os riscos foram derivados das ameaças identificadas na Etapa 1. O registro inicial mantém a rastreabilidade por meio dos identificadores STRIDE utilizados anteriormente.
 
+---
+
+### 2.1 Tabela do Registro de Riscos
+
 | ID | Origem STRIDE | Evento de risco | Probabilidade | Impacto | Pontuação | Nível |
 |---|---|---|---:|---:|---:|---|
 | R01 | S01, S05 | Comprometimento da conta de um cliente por obtenção indevida de suas credenciais | 3 | 3 | 9 | Alto |
@@ -135,18 +139,19 @@ Os riscos foram derivados das ameaças identificadas na Etapa 1. O registro inic
 Os riscos **R13** a **R17** foram acrescentados após a revisão da cobertura do registro. A verificação constatou que dez ameaças da Etapa 1 (S04, T03, T05, T06, I04, I06, I08, D05, D07 e E04) ainda não haviam originado nenhum risco, entre elas a injeção de comandos SQL (T05) e o tráfego sem proteção adequada (I04). Com esses cinco riscos, as 36 ameaças identificadas na Etapa 1 passam a estar integralmente cobertas.
 
 ---
-## 2.1 Justificativas da Avaliação dos Riscos
+
+### 2.2 Justificativas da Avaliação dos Riscos
 
 A atribuição dos valores de probabilidade e impacto considera as condições atuais identificadas para o Bah Delivery. A probabilidade representa a possibilidade de ocorrência do evento nas condições atuais do sistema, enquanto o impacto representa a gravidade das consequências caso o evento se concretize.
 
 A avaliação utiliza a escala definida anteriormente no documento, na qual a probabilidade varia de 1 (Baixa) a 4 (Alta) e o impacto varia de 1 (Baixo) a 4 (Muito alto).
 
 ---
-### *R01 - Comprometimento da conta de um cliente por obtenção indevida de suas credenciais*
+### R01 - Comprometimento da conta de um cliente por obtenção indevida de suas credenciais
 
-  Probabilidade = 3 (Média-Alta). As ameaças S01 e S05 indicam condições que podem resultar na obtenção indevida das credenciais de um cliente. Uma vez obtidas credenciais válidas, o atacante pode utilizá-las para se autenticar como o usuário legítimo. Dessa forma, o evento é considerado plausível nas condições identificadas.
-  
-  Impacto = 3 (Alto). O comprometimento permite acesso às informações e funcionalidades disponíveis para a conta afetada, podendo também possibilitar ações em nome do cliente. Entretanto, o evento descrito considera inicialmente o comprometimento de uma conta individual, não implicando necessariamente o comprometimento simultâneo de diversos usuários ou de uma operação essencial da plataforma.
+Probabilidade: 3 (Média-alta). As ameaças S01 e S05 indicam condições que podem resultar na obtenção indevida das credenciais de um cliente. Uma vez obtidas credenciais válidas, o atacante pode utilizá-las para se autenticar como o usuário legítimo. Dessa forma, o evento é considerado plausível nas condições identificadas.
+
+Impacto: 3 (Alto). O comprometimento permite acesso às informações e funcionalidades disponíveis para a conta afetada, podendo também possibilitar ações em nome do cliente. Entretanto, o evento descrito considera inicialmente o comprometimento de uma conta individual, não implicando necessariamente o comprometimento simultâneo de diversos usuários ou de uma operação essencial da plataforma.
 
 Pontuação: 3 × 3 = 9 (Alto).
 
@@ -296,8 +301,9 @@ Pontuação: 3 × 3 = 9 (Alto).
 
 ---
 
-## 2.3 Priorização dos Riscos
-A priorização considera principalmente a pontuação de risco (Probabilidade × Impacto) atribuída na seção 2.2. Entretanto, como diversos riscos apresentam a mesma pontuação, o desempate leva em conta os seguintes fatores:
+### 2.3 Priorização dos Riscos
+
+A priorização considera principalmente a pontuação de risco (Probabilidade × Impacto) atribuída na seção 2.1 e justificada na seção 2.2. Entretanto, como diversos riscos apresentam a mesma pontuação, o desempate leva em conta os seguintes fatores:
 - A extensão do dano financeiro, operacional, reputacional ou legal decorrente da concretização do risco;
 - Se o evento tende a atingir um único usuário ou transação, ou múltiplos perfis simultaneamente;
 - A criticidade do ativo comprometido para o funcionamento da plataforma;
@@ -499,7 +505,7 @@ O plano observa três regras de coerência com as seções anteriores:
 
 Os controles recebem identificadores próprios (`C01` em diante) para que possam ser referenciados sem ambiguidade. Alguns controles atendem a mais de um risco e reaparecem com o mesmo identificador, o que é consolidado na seção 3.5.4.
 
-Nenhum controle está implementado. Conforme o enunciado, a redução efetiva do risco somente poderá ser afirmada após implementação, teste e obtenção de evidências, o que é tratado na estimativa de risco residual.
+Nenhum controle está implementado. Conforme o enunciado, a redução efetiva do risco somente poderá ser afirmada após implementação, teste e obtenção de evidências, o que é tratado na estimativa de risco residual da seção 3.7.
 
 ---
 
@@ -521,7 +527,7 @@ Como o Bah Delivery não está implementado, os responsáveis são definidos por
 
 #### 3.5.2. Planos por Risco
 
-Os riscos são apresentados na ordem do registro. A ordem de implementação dos controles é definida em seção própria e não corresponde a esta sequência.
+Os riscos são apresentados na ordem do registro. A ordem de implementação dos controles é definida na seção 3.6 e não corresponde a esta sequência.
 
 ---
 
@@ -876,7 +882,7 @@ A tabela confirma que cada função marcada na matriz da seção 3.4 possui cont
 
 #### 3.5.4. Controles que Atendem a Mais de um Risco
 
-Cinco controles são reaproveitados integralmente por mais de um risco, e três decisões de projeto se repetem em controles distintos aplicados a pontos diferentes da aplicação. O levantamento não estabelece ordem de execução: ele apenas identifica os controles cujo efeito se distribui por vários riscos, servindo de insumo para a definição da ordem de implementação.
+Cinco controles são reaproveitados integralmente por mais de um risco, e três decisões de projeto se repetem em controles distintos aplicados a pontos diferentes da aplicação. O levantamento não estabelece ordem de execução: ele apenas identifica os controles cujo efeito se distribui por vários riscos, servindo de insumo para a definição da ordem de implementação da seção 3.6.
 
 | Controle | Riscos atendidos | Observação |
 |---|---|---|
@@ -893,6 +899,80 @@ Cinco controles são reaproveitados integralmente por mais de um risco, e três 
 | Limitação de uso por conta e por origem | C03, C54, C60, C107 | R01, R09, R10, R17 |
 
 Os controles com maior alcance são, portanto, os relacionados à verificação de propriedade do recurso, ao registro de auditoria protegido e à limitação de uso, o que é coerente com a concentração de marcações observada na seção 3.4.
+
+---
+
+### 3.6. Ordem de Implementação dos Controles
+
+A priorização da seção 2.3 responde a qual risco é mais grave. Esta seção responde a uma pergunta diferente: em que sequência os controles do plano devem ser executados. As duas ordens não coincidem, porque a execução também depende de pré-requisitos técnicos e do alcance de cada controle.
+
+A ordem é definida a partir dos seguintes critérios, aplicados nesta sequência:
+
+1. **Prioridade do risco.** A posição na seção 2.3 é o ponto de partida da ordenação.
+2. **Dependência entre controles.** Um controle que condiciona outro é implementado antes. É o caso dos controles de *Identify*, cujo levantamento dimensiona os controles de *Protect* do mesmo risco: sem C80, não é possível concluir C81.
+3. **Alcance do controle.** Os cinco controles reaproveitados por mais de um risco, relacionados na seção 3.5.4, antecipam-se aos controles de risco único, porque uma única implementação produz efeito em várias linhas do registro.
+4. **Custo de reversão.** Controles que alteram o esquema do banco ou o formato de dados armazenados precedem os que apenas leem esses dados, para evitar retrabalho.
+5. **Esforço e responsável.** Controles atribuídos ao mesmo responsável são agrupados quando os critérios anteriores não os separam.
+
+A coluna *Ordem* indica a posição de execução, e não a prioridade do risco, que permanece registrada na coluna própria para permitir a comparação entre as duas. A coluna *Controles envolvidos* reproduz a seção 3.5.3, que permanece sendo a fonte da correspondência entre riscos e controles.
+
+| Ordem | Risco | Prioridade (2.3) | Nível inicial | Controles envolvidos | Pré-requisito | Justificativa da posição |
+|:---:|---|:---:|---|---|---|---|
+| | R01 | 6 | Alto | C01 a C08 | | |
+| | R02 | 14 | Médio | C09, C10, C11 e C07 | | |
+| | R03 | 15 | Médio | C12 a C17 | | |
+| | R04 | 8 | Alto | C18 a C22 | | |
+| | R05 | 16 | Médio | C23 a C27 | | |
+| | R06 | 13 | Médio | C28 a C33 | | |
+| | R07 | 4 | Crítico | C34 a C41 | | |
+| | R08 | 3 | Crítico | C42 a C50 e C31 | | |
+| | R09 | 5 | Crítico | C51 a C59 | | |
+| | R10 | 12 | Alto | C60 a C63 e C03 | | |
+| | R11 | 2 | Crítico | C64 a C72 e C07 | | |
+| | R12 | 10 | Alto | C73 a C78 e C30 | | |
+| | R13 | 1 | Crítico | C79 a C87 e C59 | | |
+| | R14 | 11 | Alto | C88 a C93 | | |
+| | R15 | 17 | Médio | C94 a C99 | | |
+| | R16 | 7 | Alto | C100 a C104 | | |
+| | R17 | 9 | Alto | C105 a C112 | | |
+
+> **Em preenchimento.** As linhas estão listadas na ordem do registro. As colunas *Ordem*, *Pré-requisito* e *Justificativa da posição* são preenchidas no fechamento da etapa, quando cada posição recebe justificativa própria segundo os cinco critérios acima.
+
+---
+
+### 3.7. Risco Residual Esperado
+
+O risco residual é o risco que permanece após a implementação dos controles propostos. Esta seção o apresenta como **estimativa**, e não como resultado obtido.
+
+A distinção é necessária porque nenhum controle do plano está implementado. A reavaliação registrada aqui descreve a probabilidade e o impacto que se espera obter **caso** os controles do risco sejam implementados, testados e comprovados pelas evidências indicadas na seção 3.5.2. Enquanto essas evidências não existirem, o risco vigente continua sendo o da seção 2.1, e nenhuma redução pode ser afirmada.
+
+A estimativa observa três regras:
+
+1. A probabilidade e o impacto residuais utilizam a mesma escala de 1 a 4 da seção 1, e a pontuação residual é obtida pela mesma multiplicação.
+2. O impacto residual raramente se altera. Os controles do plano atuam predominantemente sobre a probabilidade do evento; quando o impacto é reduzido, isso decorre de um controle que elimina ou limita o ativo atingido, e a linha indica qual controle produz esse efeito.
+3. Nenhum risco chega a zero. O residual é o risco remanescente que a plataforma decide manter, e por isso cada linha recebe uma condição de aceitação: o que precisa ser verdadeiro para que o residual seja considerado aceitável e sob qual acompanhamento ele permanece.
+
+| Risco | Inicial (P × I) | Nível inicial | P residual | I residual | Pontuação residual | Nível residual | Condição de aceitação |
+|---|:---:|---|:---:|:---:|:---:|---|---|
+| R01 | 3 × 3 = 9 | Alto | | | | | |
+| R02 | 2 × 3 = 6 | Médio | | | | | |
+| R03 | 2 × 3 = 6 | Médio | | | | | |
+| R04 | 3 × 3 = 9 | Alto | | | | | |
+| R05 | 2 × 3 = 6 | Médio | | | | | |
+| R06 | 2 × 3 = 6 | Médio | | | | | |
+| R07 | 3 × 4 = 12 | Crítico | | | | | |
+| R08 | 3 × 4 = 12 | Crítico | | | | | |
+| R09 | 3 × 4 = 12 | Crítico | | | | | |
+| R10 | 2 × 4 = 8 | Alto | | | | | |
+| R11 | 3 × 4 = 12 | Crítico | | | | | |
+| R12 | 2 × 4 = 8 | Alto | | | | | |
+| R13 | 4 × 4 = 16 | Crítico | | | | | |
+| R14 | 2 × 4 = 8 | Alto | | | | | |
+| R15 | 2 × 3 = 6 | Médio | | | | | |
+| R16 | 3 × 3 = 9 | Alto | | | | | |
+| R17 | 3 × 3 = 9 | Alto | | | | | |
+
+> **Em preenchimento.** As colunas de probabilidade, impacto, pontuação e nível residuais e a condição de aceitação são preenchidas no fechamento da etapa. A coluna *Nível residual* depende da tabela de classificação do nível, pendente na seção 1, e será preenchida com os mesmos limiares ali definidos.
 
 ---
 
