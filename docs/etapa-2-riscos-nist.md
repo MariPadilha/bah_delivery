@@ -11,7 +11,7 @@ O sistema, os ativos, os usuários, as ameaças STRIDE e os casos de abuso são 
 1. [Metodologia de Avaliação de Riscos](#1-metodologia-de-avaliação-de-riscos)
 2. [Registro Inicial de Riscos](#2-registro-inicial-de-riscos)
 3. [Tratamento de Riscos](#3-tratamento-de-riscos)
-4. [Organização do Projeto](#4-organização-do-projeto)
+4. [Distribuição Integrante X Responsabilidades](#4-distribuição-integrante-x-responsabilidades)
 
 ---
 
@@ -367,13 +367,13 @@ O tratamento dos riscos será realizado considerando as seguintes estratégias:
 
 ---
 
-## 4. Organização do Projeto
+## 4. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
 |------------|-------------------|
-| Arthur Medeiros | |
-| Emanuel Ferreira | |
-| Guilherme Mundt | |
-| Lívia Barbosa | |
-| Mariana Padilha | |
-| Matheus Ciocca | |
+| Arthur Medeiros | Definir critérios de avaliação de riscos e registrar riscos iniciais. |
+| Emanuel Ferreira | Definir ordem de priorização e estimar o risco residual esperado. |
+| Guilherme Mundt | Relacionar os riscos às funções do NIST CSF 2.0. |
+| Lívia Barbosa | Priorizar os riscos e definir estratégias de tratamento. |
+| Mariana Padilha | Avaliar e justificar os riscos inicialmente mapeados. |
+| Matheus Ciocca | Definir plano de tratamento de riscos e controles concretos. |
