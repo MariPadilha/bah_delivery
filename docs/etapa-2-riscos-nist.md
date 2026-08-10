@@ -487,6 +487,415 @@ As funções indicadas nesta seção descrevem apenas os resultados esperados. O
 
 ---
 
+### 3.5. Plano de Tratamento
+
+Esta seção apresenta, para cada risco do registro, os controles propostos, os responsáveis por sua implementação e as evidências que permitirão verificar se o controle existe e funciona. É o ponto em que o plano deixa de descrever resultados esperados e passa a indicar medidas concretas.
+
+O plano observa três regras de coerência com as seções anteriores:
+
+1. A estratégia de cada risco é a mesma definida na seção 3.2 e não é reaberta aqui.
+2. As funções do NIST são exatamente as marcadas na matriz da seção 3.4. Toda função marcada possui ao menos um controle correspondente, e nenhum controle invoca função que não tenha sido marcada para aquele risco.
+3. Cada controle indica onde será aplicado e qual condição identificada na Etapa 1 pretende remover ou limitar. Controles genéricos, como "usar criptografia" ou "monitorar o sistema", não são utilizados: quando a medida deriva de uma dessas ideias, o texto especifica o componente, o parâmetro e a forma de verificação.
+
+Os controles recebem identificadores próprios (`C01` em diante) para que possam ser referenciados sem ambiguidade. Alguns controles atendem a mais de um risco e reaparecem com o mesmo identificador, o que é consolidado na seção 3.5.4.
+
+Nenhum controle está implementado. Conforme o enunciado, a redução efetiva do risco somente poderá ser afirmada após implementação, teste e obtenção de evidências, o que é tratado na estimativa de risco residual.
+
+---
+
+#### 3.5.1. Responsáveis
+
+Como o Bah Delivery não está implementado, os responsáveis são definidos por papel funcional, e não por pessoa. Os papéis abaixo são os utilizados nas colunas *Responsável* de todo o plano. Eles descrevem a organização hipotética que manteria a plataforma, e não se confundem com a distribuição de tarefas entre os integrantes do grupo, registrada na seção 4.
+
+| Papel | Escopo de atuação |
+|---|---|
+| Backend | API REST, regras de negócio, consultas ao banco de dados, autenticação e autorização no servidor. |
+| Frontend | Interface web dos quatro perfis, formulários e apresentação de mensagens ao usuário. |
+| Infraestrutura | Servidor da aplicação, banco de dados, TLS, backups, borda (CDN e WAF) e serviços externos contratados. |
+| Segurança | Políticas, revisão de código sob a ótica de segurança, definição das regras de alerta e condução da resposta a incidentes. |
+| Produto | Decisões de negócio que precedem o controle técnico: atrito aceitável na autenticação, cotas por usuário e requisitos de cadastro. |
+| Suporte | Atendimento aos quatro perfis, aprovação de cadastros, contenção manual, estornos e comunicação aos usuários. |
+| Encarregado de Dados | Obrigações decorrentes da legislação de proteção de dados: classificação, minimização, retenção e comunicação aos titulares e à autoridade. |
+
+---
+
+#### 3.5.2. Planos por Risco
+
+Os riscos são apresentados na ordem do registro. A ordem de implementação dos controles é definida em seção própria e não corresponde a esta sequência.
+
+---
+
+##### R01 - Comprometimento da conta de um cliente por obtenção indevida de suas credenciais
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Credenciais de autenticação, dados pessoais dos clientes, histórico de pedidos e informações de pagamento.
+- **Funções do NIST:** Govern, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C01 | Política de autenticação aprovada pelo Produto, definindo que o segundo fator é obrigatório para os perfis administrador e restaurante e exigido do cliente em acesso a partir de dispositivo não reconhecido, com responsável designado pela revisão anual. | Govern | Produto e Segurança | Documento de política versionado no repositório, com data de aprovação e responsável nomeado. |
+| C02 | Segundo fator de autenticação implementado conforme a política, por aplicativo de código temporário para administrador e restaurante e por código enviado ao cliente em dispositivo novo. | Protect | Backend | Teste automatizado que confirma a recusa do acesso administrativo somente com usuário e senha; roteiro de teste manual do fluxo do cliente. |
+| C03 | Limitação progressiva das tentativas de autenticação, aplicada por conta e por origem da requisição, com atraso incremental e desafio após o limiar, sem bloqueio permanente acionado apenas pela contagem por conta. | Protect | Backend | Teste automatizado que envia tentativas sucessivas e verifica o atraso aplicado; verificação de que a conta permanece acessível à origem legítima, conforme exigido em R10. |
+| C04 | Recusa, no cadastro e na troca de senha, de senhas presentes em listas públicas de credenciais vazadas, por consulta que não transmite a senha em texto claro. | Protect | Backend | Teste automatizado com senha conhecidamente vazada esperando recusa; registro da versão da lista consultada. |
+| C05 | Publicação dos registros SPF e DKIM e política DMARC em modo de rejeição para o domínio da plataforma, com as notificações oficiais deixando de conter links que levem à tela de autenticação. | Protect | Infraestrutura | Consulta pública aos registros do domínio; revisão dos modelos de mensagem confirmando a ausência de links de autenticação. |
+| C06 | Regra de alerta para cinco falhas de autenticação na mesma conta em dez minutos e para autenticação bem-sucedida a partir de dispositivo ou origem não reconhecidos. | Detect | Segurança | Simulação das duas condições em ambiente de teste com registro do alerta gerado e do tempo até a notificação. |
+| C07 | Bloqueio da conta identificada como comprometida e revogação de todas as suas sessões e tokens de renovação. | Respond | Backend e Suporte | Exercício de conta comprometida, medindo o tempo entre a decisão e a perda de acesso do atacante simulado. |
+| C08 | Devolução do acesso ao titular por fluxo de recuperação com verificação de identidade, seguida do estorno dos pedidos realizados durante o período de comprometimento. | Recover | Suporte | Procedimento documentado; registro dos casos tratados com data de restabelecimento e valor estornado. |
+
+*Observação:* C03 é deliberadamente formulado para não introduzir o problema descrito em D06, no qual o bloqueio por tentativas se converte em meio de indisponibilizar contas alheias. O mesmo controle é reaproveitado no tratamento de R10.
+
+---
+
+##### R02 - Utilização indevida de uma sessão legítima por meio do comprometimento de seu token
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Credenciais de autenticação, sessões de usuário e API REST.
+- **Funções do NIST:** Protect, Detect e Respond.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C09 | Redução da validade do token de acesso para quinze minutos, com renovação por token de uso único e rotativo, transportados em cookie com os atributos HttpOnly, Secure e SameSite. | Protect | Backend | Teste automatizado que confirma a expiração no prazo e a recusa do token de renovação já utilizado; inspeção dos atributos do cookie na resposta. |
+| C10 | Vinculação do token de renovação ao dispositivo e à faixa de origem em que foi emitido, com exigência de nova autenticação quando qualquer dos dois muda. | Protect | Backend | Teste que reapresenta o token a partir de outra origem e espera recusa com nova autenticação. |
+| C11 | Regra de alerta para uso do mesmo token a partir de dois dispositivos ou origens distintos na mesma janela e para reapresentação de token de renovação já rotacionado. | Detect | Segurança | Simulação de reuso de token com registro do alerta e da sessão encerrada. |
+| C07 | Revogação de todas as sessões e tokens de renovação da conta afetada. | Respond | Backend e Suporte | Mesma evidência registrada em R01. |
+
+*Observação:* a ausência de *Recover* segue a justificativa da seção 3.4. Revogar o token é contenção, e o estado eventualmente alterado durante a sessão comprometida é recomposto pelo controle C08, já previsto em R01.
+
+---
+
+##### R03 - Cadastro de restaurante inexistente para obtenção fraudulenta de pagamentos e dados
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Dados dos restaurantes, informações de pagamento e dados pessoais dos clientes.
+- **Funções do NIST:** Govern, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C12 | Política de credenciamento de estabelecimentos, definindo os documentos exigidos, quem aprova o cadastro, o prazo de análise e os efeitos da recusa. | Govern | Produto e Suporte | Política versionada; amostra de cadastros analisados com a decisão registrada e o aprovador identificado. |
+| C13 | Validação do CNPJ informado na base pública da Receita Federal, confirmação do endereço do estabelecimento e verificação de que a conta de repasse pertence ao mesmo CNPJ. | Protect | Backend e Suporte | Teste com CNPJ inexistente e com CNPJ divergente da conta bancária, ambos esperando recusa; registro da consulta realizada por cadastro aprovado. |
+| C14 | Manutenção do estabelecimento em estado pendente até a aprovação, sem receber pedidos nem repasses nesse período. | Protect | Backend | Teste automatizado que tenta enviar pedido a estabelecimento pendente e espera recusa. |
+| C15 | Painel de indicadores por estabelecimento com alerta para cancelamentos sucessivos, pedidos marcados como entregues sem confirmação do cliente e taxa de contestação acima do limiar definido. | Detect | Segurança e Suporte | Simulação com dados de teste reproduzindo o padrão fraudulento e registro do alerta gerado. |
+| C16 | Suspensão do estabelecimento e retenção do repasse pendente enquanto a apuração ocorre. | Respond | Suporte | Registro dos casos suspensos com data, motivo e valor retido. |
+| C17 | Estorno aos clientes atingidos e comunicação individual informando o ocorrido. | Recover | Suporte | Procedimento documentado; relação dos estornos efetuados com o prazo de conclusão. |
+
+---
+
+##### R04 - Manipulação do valor de um pedido antes da realização do pagamento
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Pedidos, carrinho de compras e informações de pagamento.
+- **Funções do NIST:** Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C18 | Levantamento das operações que hoje aceitam valores calculados no navegador, produzindo a relação dos endpoints e dos campos envolvidos. | Identify | Backend | Relação dos endpoints anexada ao repositório, com o responsável pela verificação de cada um. |
+| C19 | Recálculo obrigatório do total no servidor a partir do preço vigente registrado no cardápio, descartando integralmente o valor recebido do cliente. | Protect | Backend | Teste automatizado que envia total divergente e verifica que o pagamento é iniciado pelo valor recalculado. |
+| C20 | Registro de cada divergência entre o valor recebido e o recalculado, com alerta quando a mesma conta produzir divergências repetidas. | Detect | Backend e Segurança | Consulta ao registro após a execução do teste de divergência; simulação de reincidência com o alerta gerado. |
+| C21 | Rejeição do pedido cujo valor divirja do recalculado, com resposta de erro específica e sinalização da conta para análise. | Respond | Backend | Teste automatizado esperando a rejeição; verificação da sinalização na conta usada no teste. |
+| C22 | Procedimento de estorno e recomposição dos pedidos concluídos por valor incorreto antes da implementação do recálculo. | Recover | Suporte | Procedimento documentado; relação dos pedidos recompostos com o valor corrigido. |
+
+---
+
+##### R05 - Alteração indevida de informações relacionadas ao processo de entrega
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Pedidos, histórico de entregas e dados pessoais dos clientes.
+- **Funções do NIST:** Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C23 | Restrição da atualização do status da entrega ao entregador atribuído ao pedido e ao restaurante que o produziu, verificada no servidor a cada requisição. | Protect | Backend | Teste automatizado em que outro entregador tenta atualizar o pedido e recebe recusa. |
+| C24 | Máquina de estados da entrega com as transições permitidas declaradas explicitamente, e endereço de entrega imutável após a autorização do pagamento, admitindo alteração apenas por novo pedido. | Protect | Backend | Teste que tenta transição fora da sequência e alteração de endereço após o pagamento, ambos esperando recusa. |
+| C25 | Regra de alerta para tentativa de transição fora da sequência esperada e para requisição de alteração de endereço após o pagamento. | Detect | Segurança | Simulação das duas tentativas com registro do alerta gerado. |
+| C26 | Congelamento da entrega em estado sob apuração e escalonamento imediato ao Suporte. | Respond | Backend e Suporte | Roteiro de contenção executado em ambiente de teste, com o tempo até o congelamento. |
+| C27 | Restauração das informações corretas da entrega a partir do histórico versionado do pedido. | Recover | Backend e Suporte | Exercício de restauração comparando o estado recomposto com o histórico registrado. |
+
+---
+
+##### R06 - Impossibilidade de atribuir responsabilidade a ações realizadas no sistema
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Logs do sistema, histórico de entregas, cardápios, pedidos e informações de pagamento.
+- **Funções do NIST:** Govern, Identify, Protect e Detect.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C28 | Política de auditoria definindo os eventos de registro obrigatório, o prazo de retenção de doze meses e o responsável pela integridade dos registros. | Govern | Segurança | Política versionada com a relação dos eventos obrigatórios e o responsável nomeado. |
+| C29 | Levantamento das ações sensíveis que hoje não produzem registro, abrangendo pedidos, alterações de cardápio, cancelamentos, conclusões de entrega e operações administrativas. | Identify | Backend e Segurança | Relação das lacunas encontradas, com o endpoint correspondente e a data do levantamento. |
+| C30 | Registro de auditoria em modo apenas de acréscimo, mantido em armazenamento segregado do banco da aplicação, com encadeamento por resumo criptográfico e sem permissão de alteração ou exclusão para o perfil administrador. | Protect | Infraestrutura | Tentativa de alteração e de exclusão de registro pelo perfil administrador, ambas esperando recusa; verificação do encadeamento em amostra. |
+| C31 | Conteúdo mínimo obrigatório por evento registrado: autor, papel, data e hora, origem da requisição, recurso afetado e valores anterior e posterior, com mascaramento dos campos sensíveis. | Protect | Backend | Inspeção de amostra dos registros confirmando a presença dos campos e a ausência de senha, token e dados de pagamento. |
+| C32 | Comprovação da entrega por código de confirmação fornecido pelo cliente no ato do recebimento, com registro de geolocalização na retirada e na entrega. | Protect | Backend | Teste que conclui a entrega sem o código e espera recusa; inspeção dos dados registrados em entrega concluída. |
+| C33 | Verificação diária automatizada da cadeia de resumos e alerta para lacuna na sequência de eventos ou falha na geração do registro. | Detect | Infraestrutura e Segurança | Remoção intencional de um registro em ambiente de teste, com o alerta correspondente. |
+
+*Observação:* a ausência de *Respond* e de *Recover* segue a justificativa da seção 3.4. R06 não produz um incidente a ser contido, e um registro que não foi gerado não pode ser reconstituído depois, o que torna o tratamento necessariamente preventivo.
+
+---
+
+##### R07 - Exposição indevida de dados pertencentes a clientes
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Dados pessoais dos clientes, pedidos, histórico de pedidos e API REST.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C34 | Política de classificação, minimização e retenção dos dados pessoais, indicando quais campos cada perfil pode receber e por quanto tempo permanecem disponíveis. | Govern | Encarregado de Dados | Política versionada com a tabela de campos por perfil e os prazos de retenção. |
+| C35 | Mapeamento dos endpoints que retornam dados de clientes e dos campos efetivamente devolvidos por cada um. | Identify | Backend | Relação dos endpoints e campos, comparada à tabela da política C34. |
+| C36 | Verificação, em todo endpoint, de que o registro solicitado pertence ao usuário autenticado, e substituição dos identificadores sequenciais de pedidos, endereços e avaliações por identificadores não previsíveis. | Protect | Backend | Teste automatizado que solicita registro de outro cliente e espera recusa; verificação de que nenhuma resposta expõe identificador sequencial. |
+| C37 | Redução do conteúdo devolvido por perfil, de modo que o restaurante receba apenas o nome do cliente e os itens do pedido, e o entregador receba endereço e telefone somente durante a janela da entrega. | Protect | Backend | Comparação das respostas dos três perfis com a tabela de campos da política C34. |
+| C38 | Expiração do acesso do entregador aos dados do cliente após a conclusão da entrega, com o histórico de entregas deixando de apresentar endereço e telefone. | Protect | Backend | Teste que consulta o histórico após a conclusão e verifica a ausência dos campos. |
+| C39 | Regra de alerta para volume anômalo de leituras de registros pertencentes a outros titulares a partir de uma mesma conta. | Detect | Segurança | Simulação de leitura sequencial de registros com registro do alerta e do limiar acionado. |
+| C40 | Suspensão da conta envolvida e bloqueio do padrão de acesso identificado. | Respond | Segurança e Suporte | Exercício de contenção com o tempo entre o alerta e a suspensão. |
+| C41 | Encerramento dos acessos indevidos, apuração da extensão da exposição e comunicação aos titulares atingidos e à autoridade de proteção de dados nos prazos legais. | Recover | Encarregado de Dados | Procedimento documentado com os prazos; registro das comunicações efetuadas em caso simulado. |
+
+*Observação:* conforme a ressalva da seção 3.4, a confidencialidade perdida não é restaurável. A função *Recover* limita-se, neste risco, ao encerramento dos acessos e ao cumprimento das obrigações de comunicação.
+
+---
+
+##### R08 - Comprometimento de credenciais e informações sensíveis armazenadas pela plataforma
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Credenciais de autenticação, banco de dados, informações de pagamento e logs do sistema.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C42 | Política de criptografia e de custódia de chaves, definindo os algoritmos aceitos, quem detém as chaves e a periodicidade de rotação. | Govern | Segurança e Infraestrutura | Política versionada; registro das rotações realizadas com data e responsável. |
+| C43 | Inventário dos locais em que credenciais e informações sensíveis são armazenadas, incluindo backups, ambientes de teste e registros de auditoria. | Identify | Infraestrutura | Inventário datado, com o responsável por cada local e a classificação do dado ali mantido. |
+| C44 | Armazenamento das senhas com função de derivação Argon2id, com sal individual por usuário e parâmetros de custo revisados anualmente. | Protect | Backend | Inspeção do formato armazenado em ambiente de teste; registro da revisão anual dos parâmetros. |
+| C45 | Eliminação do armazenamento local dos dados de pagamento, mantendo-se apenas a referência tokenizada devolvida pelo provedor. | Protect | Backend | Verificação de que nenhuma coluna do banco retém número de cartão; inspeção do esquema após a alteração. |
+| C46 | Criptografia em repouso do banco de dados e dos backups, com os segredos da aplicação mantidos em gerenciador dedicado e ausentes do código-fonte. | Protect | Infraestrutura | Verificação da configuração de criptografia; busca por segredos no histórico do repositório com resultado registrado. |
+| C31 | Registro de auditoria sem o corpo integral das requisições, com mascaramento de senha, token e dados de pagamento. | Protect | Backend | Mesma evidência registrada em R06, com atenção específica à ausência dos campos sensíveis. |
+| C47 | Restrição do acesso aos registros de auditoria ao papel de auditoria, deixando de estar disponível a todos os administradores. | Protect | Infraestrutura | Tentativa de consulta por administrador sem o papel de auditoria, esperando recusa. |
+| C48 | Regra de alerta para leitura em massa das tabelas de credenciais e para acesso ao banco de dados realizado fora da aplicação. | Detect | Infraestrutura e Segurança | Simulação de consulta direta ao banco com registro do alerta gerado. |
+| C49 | Revogação dos segredos comprometidos e bloqueio imediato do acesso identificado. | Respond | Infraestrutura | Exercício de vazamento simulado, medindo o tempo até a revogação. |
+| C50 | Rotação forçada das senhas dos usuários atingidos, reemissão das chaves de criptografia e invalidação de todas as sessões ativas da plataforma. | Recover | Infraestrutura e Backend | Procedimento documentado, executado em ambiente de teste com o tempo total registrado. |
+
+*Observação:* C45 reduz o impacto ao eliminar o dado armazenado, e não transfere a estratégia para compartilhar. A plataforma permanece responsável pela operação de pagamento e pela referência mantida.
+
+---
+
+##### R09 - Indisponibilidade da plataforma de delivery
+
+- **Estratégia:** Reduzir e compartilhar.
+- **Ativos atingidos:** Servidor da aplicação, API REST, banco de dados e pedidos.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C51 | Definição da meta de disponibilidade da plataforma e contratação de serviço especializado de proteção contra indisponibilidade, com responsável designado pelo acompanhamento do contrato. | Govern | Produto e Infraestrutura | Meta documentada; contrato vigente e relatório periódico do serviço contratado. |
+| C52 | Levantamento dos componentes críticos e dos pontos únicos de falha da plataforma, inclusive dependências externas. | Identify | Infraestrutura | Relação dos componentes com a indicação dos que não possuem redundância. |
+| C53 | Mitigação volumétrica na borda por meio de CDN e WAF, absorvendo o tráfego antes que ele alcance o servidor da aplicação. | Protect | Infraestrutura | Relatório de tráfego bloqueado na borda; teste de carga comparando o volume recebido pela origem. |
+| C54 | Limitação de requisições por conta e por origem nos endpoints públicos de consulta de restaurantes e cardápios. | Protect | Backend | Teste automatizado que excede o limite e espera resposta de recusa por excesso de requisições. |
+| C55 | Paginação obrigatória, limite máximo de registros por resposta e tempo máximo de execução nas consultas de busca e de histórico. | Protect | Backend | Teste que solicita a totalidade dos registros e verifica a aplicação do limite; medição do tempo de consulta. |
+| C56 | Limite de pedidos simultâneos em aberto por cliente e envio do pedido ao restaurante somente após a autorização do pagamento. | Protect | Backend | Teste que abre pedidos além do limite esperando recusa; verificação de que o restaurante não recebe pedido sem pagamento autorizado. |
+| C57 | Monitoramento de latência, taxa de erro e saturação de recursos, com alerta por limiar e verificação externa de disponibilidade. | Detect | Infraestrutura | Painel de monitoramento em operação; registro de alerta gerado em teste de carga. |
+| C58 | Procedimento de contenção documentado, prevendo a ativação do modo de proteção na borda, o bloqueio das origens abusivas e a degradação controlada das funções não essenciais. | Respond | Infraestrutura | Procedimento versionado, exercitado ao menos uma vez com o tempo de execução registrado. |
+| C59 | Backup diário com teste de restauração trimestral, mantendo registrado o tempo de recuperação efetivamente obtido. | Recover | Infraestrutura | Relatório de cada teste de restauração, com data, duração e resultado. |
+
+---
+
+##### R10 - Interrupção ou sabotagem de operações relacionadas aos restaurantes e entregas
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Pedidos, dados dos restaurantes, dados dos entregadores e credenciais de autenticação.
+- **Funções do NIST:** Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C60 | Limite de entregas aceitas simultaneamente por entregador e expiração automática da reserva não iniciada dentro do prazo definido, devolvendo o pedido à fila. | Protect | Backend | Teste que aceita entregas além do limite esperando recusa; teste de expiração verificando o retorno do pedido à fila. |
+| C03 | Limitação das tentativas de autenticação aplicada por origem, e não apenas por conta, de modo que a repetição deliberada de tentativas não indisponibilize a conta de um usuário legítimo. | Protect | Backend | Teste que simula tentativas contra conta alheia e verifica que o titular continua conseguindo autenticar-se. |
+| C61 | Regra de alerta para acúmulo de reservas de entrega sem progresso por um mesmo entregador e para tentativas de autenticação em série contra contas distintas. | Detect | Segurança | Simulação dos dois padrões com registro dos alertas gerados. |
+| C62 | Liberação das entregas retidas, devolução à fila da região e suspensão da conta responsável pelo abuso. | Respond | Backend e Suporte | Exercício de contenção com o tempo entre o alerta e a liberação dos pedidos. |
+| C63 | Reprocessamento dos pedidos afetados e recomposição da fila de entregas da região atingida. | Recover | Suporte | Registro dos pedidos reprocessados e do tempo de normalização da região. |
+
+---
+
+##### R11 - Obtenção indevida de privilégios administrativos
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Controle de permissões, API REST, sessões de usuário e banco de dados.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C64 | Política de concessão e revisão periódica dos privilégios administrativos, com aprovação nominal registrada e revisão trimestral das contas que os detêm. | Govern | Segurança e Produto | Política versionada; ata de cada revisão trimestral com as contas mantidas e revogadas. |
+| C65 | Inventário das permissões vigentes e das contas que atualmente as detêm, incluindo acessos concedidos em caráter temporário. | Identify | Backend e Segurança | Inventário datado, comparado à relação de aprovações da política C64. |
+| C66 | Verificação de autorização no servidor em toda rota administrativa, com negação por padrão, deixando a interface de ser o único ponto de restrição. | Protect | Backend | Teste automatizado que invoca cada rota administrativa com conta de cliente e espera recusa. |
+| C67 | Recusa do perfil do usuário como campo da requisição de cadastro ou de atualização, com a atribuição de papel ocorrendo apenas por fluxo administrativo aprovado. | Protect | Backend | Teste que envia o campo de perfil no cadastro e verifica que ele é ignorado. |
+| C68 | Assinatura do token de sessão com segredo forte mantido em gerenciador de segredos, algoritmo fixado no servidor e papel do usuário resolvido no servidor a cada requisição, em vez de lido do token. | Protect | Backend | Teste com token forjado e com algoritmo alterado, ambos esperando recusa; verificação de que a alteração do papel no token não produz efeito. |
+| C69 | Exigência de nova autenticação e geração de registro de auditoria em toda alteração de permissões de conta. | Protect | Backend | Teste que altera permissão sem reautenticar esperando recusa; inspeção do registro gerado. |
+| C70 | Regra de alerta para toda concessão de privilégio administrativo e para o primeiro acesso a rota administrativa por conta recém-elevada. | Detect | Segurança | Simulação de elevação de privilégio com registro dos dois alertas. |
+| C07 | Bloqueio da conta envolvida e revogação de todas as suas sessões e tokens de renovação. | Respond | Backend e Segurança | Mesma evidência registrada em R01. |
+| C71 | Revogação dos privilégios obtidos indevidamente e das concessões derivadas realizadas pela conta. | Respond | Backend e Segurança | Exercício de elevação simulada, verificando a revogação em cadeia das permissões concedidas. |
+| C72 | Reversão das alterações administrativas praticadas pela conta, reconstituídas a partir do registro de auditoria. | Recover | Backend e Suporte | Exercício de reversão comparando o estado final com o registro de auditoria do período. |
+
+---
+
+##### R12 - Abuso de privilégios administrativos com possibilidade de ocultação das ações realizadas
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Controle de permissões, logs do sistema, informações de pagamento e banco de dados.
+- **Funções do NIST:** Govern, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C73 | Segregação do perfil administrador em papéis distintos para a gestão de usuários, a consulta de auditoria e o acesso a dados de pagamento, eliminando a concentração de todas as capacidades em um único perfil. | Govern | Segurança e Produto | Matriz de papéis versionada; teste que confirma a recusa de operação fora do papel atribuído. |
+| C74 | Definição do papel de auditoria como independente e sem poder de alteração, com indicação nominal de quem audita as ações dos administradores e com que periodicidade. | Govern | Segurança | Designação documentada; relatórios de auditoria periódicos assinados pelo responsável. |
+| C75 | Exigência de dupla aprovação para operações administrativas sensíveis, como exclusão de registros, alteração de dados de repasse e acesso a informações de pagamento. | Protect | Backend | Teste que executa a operação com uma única aprovação e espera recusa; inspeção do registro das duas aprovações. |
+| C30 | Registro de auditoria em modo apenas de acréscimo, em armazenamento segregado e sem permissão de alteração para o perfil administrador. | Protect | Infraestrutura | Mesma evidência registrada em R06, com ênfase na tentativa de supressão descrita em RP04. |
+| C76 | Regra de alerta para ação administrativa sobre dados de pagamento e para tentativa de escrita ou exclusão no repositório de auditoria. | Detect | Infraestrutura e Segurança | Simulação das duas tentativas com registro dos alertas gerados. |
+| C77 | Suspensão do administrador envolvido e revisão de todas as ações por ele praticadas no período sob apuração. | Respond | Segurança | Procedimento documentado; relatório da revisão em caso simulado. |
+| C78 | Reversão das alterações praticadas e recomposição dos registros a partir da cópia segregada de auditoria. | Recover | Infraestrutura e Backend | Exercício de recomposição comparando o resultado com a cópia segregada. |
+
+*Observação:* a ausência de *Identify* segue a justificativa da seção 3.4. O levantamento das ações sensíveis é o mesmo realizado em C29, no tratamento de R06, e não se repete aqui.
+
+---
+
+##### R13 - Comprometimento da integridade do banco de dados por injeção de comandos nas consultas da aplicação
+
+- **Estratégia:** Evitar.
+- **Ativos atingidos:** Banco de dados, pedidos, cardápios, avaliações e API REST.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C79 | Padrão de codificação que torna obrigatório o uso de consultas parametrizadas em toda a aplicação, com regra de análise estática impedindo a integração de código que concatene entrada do usuário em consulta. | Govern | Segurança e Backend | Padrão versionado; execução da regra no pipeline, com registro de integração bloqueada em teste. |
+| C80 | Inventário completo das consultas dinâmicas existentes, obtido por análise estática do código-fonte, condição sem a qual não é possível afirmar que a exposição foi eliminada. | Identify | Backend | Relatório da análise estática datado, com a relação das ocorrências e o responsável pela correção de cada uma. |
+| C81 | Reescrita de todas as consultas identificadas com vinculação de parâmetros, eliminando a concatenação da entrada do usuário, especialmente nos campos de busca de restaurantes e produtos. | Protect | Backend | Nova execução da análise estática sem ocorrências; teste automatizado com carga de injeção esperando resultado sem efeito. |
+| C82 | Validação da entrada dos campos de busca por lista de caracteres permitidos e limite de tamanho, mantida como defesa adicional e não como proteção principal. | Protect | Backend | Teste com entrada fora da lista permitida esperando recusa. |
+| C83 | Uso de conta de banco de dados com privilégio mínimo pela aplicação, sem permissão de alteração de estrutura nem de acesso a tabelas fora do seu escopo. | Protect | Infraestrutura | Tentativa de alteração de estrutura pela conta da aplicação, esperando recusa. |
+| C84 | Substituição das mensagens de erro detalhadas por mensagem genérica ao cliente, com o rastreamento da exceção e a consulta executada mantidos apenas no registro interno. | Protect | Backend | Provocação de erro em ambiente de teste, verificando a resposta ao cliente e a presença do detalhe apenas no registro. |
+| C85 | Regra de alerta para erro de sintaxe de consulta na aplicação e para assinatura de injeção identificada na borda. | Detect | Segurança | Simulação de tentativa de injeção com registro dos alertas gerados. |
+| C86 | Bloqueio da origem identificada e desativação temporária do endpoint afetado até a correção. | Respond | Infraestrutura | Procedimento documentado, exercitado com o tempo entre o alerta e a desativação. |
+| C59 | Backup diário com teste de restauração trimestral, mantendo registrado o tempo de recuperação efetivamente obtido. | Recover | Infraestrutura | Mesma evidência registrada em R09. |
+| C87 | Verificação da integridade dos registros restaurados e apuração das alterações praticadas entre o backup e a detecção. | Recover | Infraestrutura e Backend | Exercício de restauração comparando os registros recompostos com o registro de auditoria do período. |
+
+*Observação:* a estratégia é evitar porque C79, C80 e C81, em conjunto, removem a condição que dá origem ao risco. Os demais controles permanecem no plano porque a eliminação só pode ser afirmada após a conclusão do inventário, e porque a injeção pode reaparecer em código futuro caso o padrão não seja imposto pelo pipeline.
+
+---
+
+##### R14 - Captura de credenciais e de dados em trânsito, precedida da identificação das contas existentes na plataforma
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** API REST, credenciais de autenticação, informações de pagamento e sistema de autenticação.
+- **Funções do NIST:** Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C88 | Levantamento dos pontos de comunicação que não utilizam TLS ou que apresentam certificado mal configurado, e das respostas que diferenciam conta existente de inexistente. | Identify | Infraestrutura e Backend | Relatório de varredura dos endpoints, com a relação das ocorrências e o responsável por cada correção. |
+| C89 | Exigência de TLS na versão 1.2 ou superior em toda a comunicação, com redirecionamento das requisições em texto claro, cabeçalho de transporte estrito e monitoramento da validade do certificado. | Protect | Infraestrutura | Verificação externa da configuração de TLS; alerta configurado para a expiração do certificado. |
+| C90 | Padronização da resposta e do tempo de resposta no login e na recuperação de senha, de modo que conta existente e inexistente sejam indistinguíveis. | Protect | Backend | Teste automatizado comparando corpo, código de resposta e tempo entre os dois casos. |
+| C91 | Regra de alerta para tentativas de autenticação ou de recuperação com muitos endereços distintos a partir de uma mesma origem. | Detect | Segurança | Simulação de enumeração com registro do alerta e do limiar acionado. |
+| C92 | Bloqueio da origem identificada e exigência de desafio adicional nas requisições subsequentes. | Respond | Backend e Infraestrutura | Teste que confirma o bloqueio após o limiar e a apresentação do desafio. |
+| C93 | Rotação das credenciais e revogação das sessões das contas identificadas como expostas, com comunicação aos titulares. | Recover | Backend e Suporte | Procedimento documentado; registro das contas tratadas e das comunicações enviadas. |
+
+*Observação:* conforme a ressalva da seção 3.4, a interceptação ocorre fora da plataforma e não é observável por ela. O que C91 detecta é a enumeração de contas que costuma precedê-la, e não a captura em si.
+
+---
+
+##### R15 - Distorção de preços e de avaliações após a confirmação do pedido pelo cliente
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Cardápios, pedidos e avaliações.
+- **Funções do NIST:** Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C94 | Gravação do preço praticado no próprio pedido no momento da confirmação, de modo que o pedido deixe de referenciar o preço vigente no cardápio. | Protect | Backend | Teste que altera o preço no cardápio após a confirmação e verifica que o valor do pedido permanece inalterado. |
+| C95 | Versionamento do cardápio, registrando autoria, data e valor anterior a cada alteração de preço ou de disponibilidade. | Protect | Backend | Inspeção do histórico após sequência de alterações, confirmando autoria e valores anteriores. |
+| C96 | Vinculação da avaliação a um pedido efetivamente entregue e ao cliente que o realizou, admitindo uma única avaliação por pedido. | Protect | Backend | Teste que tenta avaliar sem pedido correspondente e avaliar duas vezes o mesmo pedido, ambos esperando recusa. |
+| C97 | Regra de alerta para alteração de preço de item com pedido em aberto e para avaliação sem pedido correspondente. | Detect | Segurança | Simulação das duas situações com registro dos alertas gerados. |
+| C98 | Bloqueio da alteração de preço enquanto houver pedido em aberto e remoção das avaliações irregulares identificadas. | Respond | Backend e Suporte | Teste do bloqueio; registro das avaliações removidas com o motivo. |
+| C99 | Recomposição do valor acordado com o cliente e recálculo da nota do estabelecimento após a remoção das avaliações irregulares. | Recover | Suporte | Registro dos casos recompostos e da nota anterior e posterior ao recálculo. |
+
+---
+
+##### R16 - Acesso a dados de clientes e de estabelecimentos por identidade não verificada ou por perfil sem delimitação de escopo
+
+- **Estratégia:** Reduzir.
+- **Ativos atingidos:** Dados dos entregadores, dados dos restaurantes, cardápios e dados pessoais dos clientes.
+- **Funções do NIST:** Identify, Protect, Detect e Respond.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C100 | Matriz de perfil por escopo de informação, declarando quais registros cada papel pode acessar e sob qual condição, levantamento que ainda não existe. | Identify | Backend e Segurança | Matriz versionada, comparada às rotas efetivamente expostas pela API. |
+| C101 | Verificação, nas operações de gerenciamento, de que o cardápio, o produto ou o pedido manipulado pertence ao estabelecimento autenticado, e não apenas de que o usuário é um restaurante. | Protect | Backend | Teste em que um estabelecimento tenta alterar produto de outro e recebe recusa. |
+| C102 | Verificação da identidade do entregador na ativação da conta e reverificação periódica, com a sessão vinculada ao dispositivo utilizado. | Protect | Suporte e Backend | Registro das verificações realizadas por conta ativa; teste de uso da sessão em outro dispositivo esperando nova autenticação. |
+| C103 | Regra de alerta para acesso a registros fora do escopo declarado na matriz C100 e para uso simultâneo da conta de entregador em dispositivos distintos. | Detect | Segurança | Simulação dos dois padrões com registro dos alertas gerados. |
+| C104 | Encerramento da sessão envolvida, revisão do escopo atribuído ao perfil e nova verificação de identidade do entregador antes do restabelecimento do acesso. | Respond | Suporte e Backend | Procedimento documentado; registro dos casos tratados com a data do restabelecimento. |
+
+*Observação:* a ausência de *Recover* segue a justificativa da seção 3.4. O alcance é pontual e nenhum estado do sistema é alterado, de modo que encerrar o acesso e revisar o escopo do perfil esgota o tratamento.
+
+---
+
+##### R17 - Esgotamento de recursos da plataforma pelo uso abusivo das funções de envio de mensagens e de upload de imagens
+
+- **Estratégia:** Reduzir e compartilhar.
+- **Ativos atingidos:** Servidor da aplicação, cardápios e sistema de autenticação.
+- **Funções do NIST:** Govern, Identify, Protect, Detect, Respond e Recover.
+
+| ID | Controle proposto | Função | Responsável | Evidência e verificação |
+|---|---|---|---|---|
+| C105 | Definição das cotas de envio de mensagens e de armazenamento por usuário e contratação do serviço externo de armazenamento, com responsável designado pelo acompanhamento do custo e da cota. | Govern | Produto e Infraestrutura | Cotas documentadas por perfil; contrato vigente e relatório mensal de consumo. |
+| C106 | Levantamento das funções que hoje não possuem limite de uso, abrangendo recuperação de senha, confirmação de cadastro e envio de imagens. | Identify | Backend | Relação das funções sem limite, com o limite proposto para cada uma. |
+| C107 | Limite de mensagens de recuperação de senha e de confirmação de cadastro por endereço de destino e por origem da requisição, dentro de janela de tempo definida. | Protect | Backend | Teste que excede o limite e verifica a recusa do envio adicional. |
+| C108 | Validação de formato, tamanho e quantidade das imagens enviadas por estabelecimento, com normalização no servidor antes do armazenamento. | Protect | Backend | Teste com arquivo acima do tamanho permitido, com formato não aceito e com quantidade acima da cota, todos esperando recusa. |
+| C109 | Armazenamento das imagens em serviço externo com cota contratada, entregues por CDN, de modo que o consumo deixe de recair sobre o servidor da aplicação. | Protect | Infraestrutura | Verificação de que as imagens são servidas pelo domínio da CDN; relatório de consumo do serviço contratado. |
+| C110 | Regra de alerta para consumo anômalo de armazenamento por estabelecimento e para volume de mensagens acima do previsto. | Detect | Infraestrutura e Segurança | Simulação de consumo acima do limiar com registro dos alertas gerados. |
+| C111 | Suspensão da função abusada para a conta envolvida, preservando o acesso às demais operações. | Respond | Backend e Suporte | Teste da suspensão seletiva, confirmando que as demais funções permanecem disponíveis. |
+| C112 | Remoção do conteúdo indevidamente enviado e liberação da cota de armazenamento consumida. | Recover | Infraestrutura e Suporte | Registro do volume liberado e da capacidade restabelecida após cada ocorrência. |
+
+---
+
+#### 3.5.3. Cobertura das Funções pelos Controles
+
+A tabela confirma que cada função marcada na matriz da seção 3.4 possui controle correspondente no plano, e que nenhum controle foi proposto para função não marcada.
+
+| Risco | Funções marcadas na seção 3.4 | Controles propostos |
+|---|---|---|
+| R01 | Govern, Protect, Detect, Respond, Recover | C01 a C08 |
+| R02 | Protect, Detect, Respond | C09, C10, C11, C07 |
+| R03 | Govern, Protect, Detect, Respond, Recover | C12 a C17 |
+| R04 | Identify, Protect, Detect, Respond, Recover | C18 a C22 |
+| R05 | Protect, Detect, Respond, Recover | C23 a C27 |
+| R06 | Govern, Identify, Protect, Detect | C28 a C33 |
+| R07 | Todas as seis | C34 a C41 |
+| R08 | Todas as seis | C42 a C50 e C31 |
+| R09 | Todas as seis | C51 a C59 |
+| R10 | Protect, Detect, Respond, Recover | C60 a C63 e C03 |
+| R11 | Todas as seis | C64 a C72 e C07 |
+| R12 | Govern, Protect, Detect, Respond, Recover | C73 a C78 e C30 |
+| R13 | Todas as seis | C79 a C87 e C59 |
+| R14 | Identify, Protect, Detect, Respond, Recover | C88 a C93 |
+| R15 | Protect, Detect, Respond, Recover | C94 a C99 |
+| R16 | Identify, Protect, Detect, Respond | C100 a C104 |
+| R17 | Todas as seis | C105 a C112 |
+
+---
+
+#### 3.5.4. Controles que Atendem a Mais de um Risco
+
+Cinco controles são reaproveitados integralmente por mais de um risco, e três decisões de projeto se repetem em controles distintos aplicados a pontos diferentes da aplicação. O levantamento não estabelece ordem de execução: ele apenas identifica os controles cujo efeito se distribui por vários riscos, servindo de insumo para a definição da ordem de implementação.
+
+| Controle | Riscos atendidos | Observação |
+|---|---|---|
+| C03 | R01, R10 | A limitação de tentativas por conta e por origem trata a obtenção de credenciais e, ao mesmo tempo, impede que o próprio controle se torne meio de indisponibilizar contas alheias. |
+| C07 | R01, R02, R11 | A revogação de sessões é a ação de contenção comum ao comprometimento de conta, de sessão e de privilégio. |
+| C30 | R06, R12 | O registro em modo apenas de acréscimo sustenta a rastreabilidade geral e é a única barreira contra a supressão de evidências pelo administrador. |
+| C31 | R06, R08 | O conteúdo mínimo do registro atende à necessidade de auditoria e, pelo mascaramento, evita que o log se torne cópia dos dados sensíveis. |
+| C59 | R09, R13 | O backup com teste de restauração é a base da recuperação tanto da indisponibilidade quanto da perda de integridade do banco. |
+
+| Decisão de projeto repetida | Controles | Riscos atendidos |
+|---|---|---|
+| Verificação de propriedade do recurso no servidor | C23, C36, C101 | R05, R07, R16 |
+| Decisão de autorização tomada no servidor, e não na interface nem em campo controlado pelo usuário | C66, C67, C68 | R11 |
+| Limitação de uso por conta e por origem | C03, C54, C60, C107 | R01, R09, R10, R17 |
+
+Os controles com maior alcance são, portanto, os relacionados à verificação de propriedade do recurso, ao registro de auditoria protegido e à limitação de uso, o que é coerente com a concentração de marcações observada na seção 3.4.
+
+---
+
 ## 4. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
