@@ -10,7 +10,7 @@ O sistema, os ativos, os usuários, as ameaças STRIDE e os casos de abuso são 
 
 1. [Metodologia de Avaliação de Riscos](#1-metodologia-de-avaliação-de-riscos)
 2. [Registro Inicial de Riscos](#2-registro-inicial-de-riscos)
-3. [Rastreabilidade entre STRIDE e Riscos](#3-rastreabilidade-entre-stride-e-riscos)
+3. [Tratamento de Riscos](#3-tratamento-de-riscos)
 4. [Organização do Projeto](#4-organização-do-projeto)
 
 ---
@@ -324,6 +324,46 @@ A priorização considera principalmente a pontuação de risco (Probabilidade �
 | 15 | R03 | Médio | Prejudica apenas os usuários que interagirem com o estabelecimento fraudulento. |
 | 16 | R05 | Médio | Afeta entregas específicas, com correção manual simples das informações. |
 | 17 | R15 | Médio | Tem os efeitos mais localizados do grupo e a menor urgência de tratamento. |
+
+---
+
+## 3. Tratamento de Riscos
+Após a identificação e a priorização dos riscos, foram definidas estratégias e medidas para reduzir a probabilidade de concretização ou impacto estimado de cada um dos riscos mapeados.
+
+---
+
+### 3.1. Estratégias de Tratamento de Riscos
+O tratamento dos riscos será realizado considerando as seguintes estratégias:
+
+| Estratégia | Descrição |
+|---|---|
+| Evitar | Eliminar a atividade ou condição que dá origem ao risco. |
+| Reduzir | Implementar medidas para diminuir a probabilidade ou o impacto. |
+| Compartilhar | Atribuir parte da operação ou das consequências a um terceiro. |
+| Aceitar | Reconhecer e manter conscientemente o risco, com justificativa e acompanhamento. |
+
+---
+
+### 3.2. Risco X Estratégia de Tratamento
+| ID do Risco | Nível Inicial | Estratégia Principal | Justificativa |
+|---|---|---|---|
+| R01 | Alto | Reduzir | O login de clientes é necessário ao sistema, mas pode receber proteções adicionais, como autenticação multifator. |
+| R02 | Médio | Reduzir | A manutenção de sessões é necessária ao uso da plataforma, mas os tokens podem ter validade menor e vinculação ao dispositivo. |
+| R03 | Médio | Reduzir | O cadastro de estabelecimentos precisa continuar aberto, mas pode exigir verificação mais rigorosa da identidade do restaurante. |
+| R04 | Alto | Reduzir | O cálculo do valor do pedido pode continuar no cliente por usabilidade, mas o valor final deve ser validado no servidor antes do pagamento. |
+| R05 | Médio | Reduzir | A atualização de informações de entrega é necessária à operação, mas deve ter controle de acesso e validação mais rígidos. |
+| R06 | Médio | Reduzir | Registros de auditoria confiáveis reduzem o risco, mas não eliminam toda possibilidade de contestação sobre a autoria das ações. |
+| R07 | Crítico | Reduzir | Os dados de clientes são necessários ao funcionamento do sistema, mas seu acesso deve ser limitado e monitorado. |
+| R08 | Crítico | Reduzir | O armazenamento de credenciais e dados sensíveis é necessário, mas deve ser protegido por criptografia forte e controles de acesso rigorosos. |
+| R09 | Crítico | Reduzir e compartilhar | A plataforma pode reforçar sua própria infraestrutura e também contar com serviços especializados de proteção contra indisponibilidade. |
+| R10 | Alto | Reduzir | As operações de restaurantes e entregadores precisam continuar disponíveis, com maior proteção contra o abuso de suas funcionalidades específicas. |
+| R11 | Crítico | Reduzir | As funções administrativas são necessárias, mas devem possuir autorização rigorosa e verificação constante de permissões. |
+| R12 | Alto | Reduzir | Auditoria e segregação de funções reduzem o risco de abuso administrativo, mas não eliminam totalmente a possibilidade de ocultação por usuários com privilégios legítimos. |
+| R13 | Crítico | Evitar | As consultas ao banco de dados podem ser reescritas de forma parametrizada, eliminando a condição que possibilita a injeção de comandos. |
+| R14 | Alto | Reduzir | A comunicação entre cliente e servidor é necessária, mas deve ser protegida por criptografia de transporte e por respostas padronizadas de autenticação. |
+| R15 | Médio | Reduzir | Preços e avaliações precisam permanecer editáveis para manutenção do catálogo, mas alterações após a confirmação do pedido devem ter controle e versionamento. |
+| R16 | Alto | Reduzir | O acesso a informações entre perfis é necessário ao funcionamento da plataforma, mas o escopo de acesso deve ser verificado e delimitado. |
+| R17 | Alto | Reduzir e compartilhar | Os envios de mensagens e uploads devem continuar disponíveis, mas podem ter limites de taxa e compartilhar armazenamento com serviços especializados em nuvem. |
 
 ---
 
