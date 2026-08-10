@@ -136,6 +136,166 @@ Os riscos foram derivados das ameaças identificadas na Etapa 1. O registro inic
 Os riscos **R13** a **R17** foram acrescentados após a revisão da cobertura do registro. A verificação constatou que dez ameaças da Etapa 1 (S04, T03, T05, T06, I04, I06, I08, D05, D07 e E04) ainda não haviam originado nenhum risco, entre elas a injeção de comandos SQL (T05) e o tráfego sem proteção adequada (I04). Com esses cinco riscos, as 36 ameaças identificadas na Etapa 1 passam a estar integralmente cobertas.
 
 ---
+## 2.1 Justificativas da Avaliação dos Riscos
+
+A atribuição dos valores de probabilidade e impacto considera as condições atuais identificadas para o Bah Delivery. A probabilidade representa a possibilidade de ocorrência do evento nas condições atuais do sistema, enquanto o impacto representa a gravidade das consequências caso o evento se concretize.
+
+A avaliação utiliza a escala definida anteriormente no documento, na qual a probabilidade varia de 1 (Baixa) a 4 (Alta) e o impacto varia de 1 (Baixo) a 4 (Muito alto).
+
+---
+### *R01 - Comprometimento da conta de um cliente por obtenção indevida de suas credenciais*
+
+  Probabilidade = 3 (Média-Alta). As ameaças S01 e S05 indicam condições que podem resultar na obtenção indevida das credenciais de um cliente. Uma vez obtidas credenciais válidas, o atacante pode utilizá-las para se autenticar como o usuário legítimo. Dessa forma, o evento é considerado plausível nas condições identificadas.
+  
+  Impacto = 3 (Alto). O comprometimento permite acesso às informações e funcionalidades disponíveis para a conta afetada, podendo também possibilitar ações em nome do cliente. Entretanto, o evento descrito considera inicialmente o comprometimento de uma conta individual, não implicando necessariamente o comprometimento simultâneo de diversos usuários ou de uma operação essencial da plataforma.
+
+Pontuação: 3 × 3 = 9 (Alto).
+
+---
+### R02 - Utilização indevida de uma sessão legítima por meio do comprometimento de seu token
+
+Probabilidade: 2 (Média-baixa). A concretização do evento depende do comprometimento prévio de um token de sessão válido. Portanto, o atacante precisa satisfazer uma condição específica antes de conseguir utilizar a sessão como o usuário legítimo.
+
+Impacto: 3 (Alto). Um token comprometido pode permitir acesso aos dados e operações disponíveis naquela sessão. Entretanto, o alcance do ataque tende a permanecer limitado aos privilégios do usuário e à validade da sessão comprometida, justificando impacto alto, mas não muito alto.
+
+Pontuação: 2 × 3 = 6 (Médio).
+
+---
+### R03 - Cadastro de restaurante inexistente para obtenção fraudulenta de pagamentos e dados
+
+Probabilidade: 2 (Média-baixa). A ocorrência depende da possibilidade de cadastrar um estabelecimento sem verificação suficiente de sua identidade. Além disso, a criação de um restaurante fraudulento exige preparação e interação com o processo de cadastro, caracterizando condições específicas para a concretização do evento.
+
+Impacto: 3 (Alto). Um estabelecimento falso pode enganar clientes e gerar operações fraudulentas, causando prejuízos financeiros e comprometendo dados associados aos pedidos. Entretanto, o impacto tende inicialmente a se concentrar nos usuários que interagirem com o estabelecimento fraudulento.
+
+Pontuação: 2 × 3 = 6 (Médio).
+
+---
+### R04 - Manipulação do valor de um pedido antes da realização do pagamento
+
+Probabilidade: 3 (Média-alta). A ameaça T01 está associada à confiança em valores calculados ou fornecidos pelo cliente. Caso esses valores sejam aceitos sem validação independente no servidor, existe uma condição favorável para que um usuário mal-intencionado altere o valor enviado antes da realização do pagamento.
+
+Impacto: 3 (Alto). A exploração compromete a integridade financeira da operação e pode permitir a realização de pedidos por valores diferentes dos efetivamente devidos, causando prejuízos ao estabelecimento ou à plataforma. Entretanto, o evento está relacionado inicialmente à manipulação de pedidos específicos e não necessariamente ao comprometimento de todo o sistema de pagamentos.
+
+Pontuação: 3 × 3 = 9 (Alto).
+
+---
+### R05 - Alteração indevida de informações relacionadas ao processo de entrega
+
+Probabilidade: 2 (Média-baixa). A ocorrência depende da existência e exploração de falhas específicas que permitam a alteração de informações de entrega por um usuário que não deveria possuir essa permissão.
+
+Impacto: 3 (Alto). A manipulação pode causar divergências no estado das entregas, fraudes operacionais, atrasos e prejuízos aos usuários envolvidos. Entretanto, seus efeitos tendem a permanecer concentrados nas entregas afetadas, sem necessariamente comprometer a plataforma como um todo.
+
+Pontuação: 2 × 3 = 6 (Médio).
+
+---
+### R06 - Impossibilidade de atribuir responsabilidade a ações realizadas no sistema
+
+Probabilidade: 2 (Média-baixa). Para que o risco produza consequências relevantes, é necessário que uma ação contestada ou maliciosa seja realizada e que os registros disponíveis sejam insuficientes para determinar sua autoria. Dessa forma, sua concretização depende de condições específicas.
+
+Impacto: 3 (Alto). A ausência de rastreabilidade pode prejudicar investigações de incidentes, auditorias e resolução de disputas entre clientes, restaurantes, entregadores e administradores. Apesar disso, as funcionalidades principais da plataforma podem continuar operando normalmente.
+
+Pontuação: 2 × 3 = 6 (Médio).
+
+---
+### R07 - Exposição indevida de dados pertencentes a clientes
+
+Probabilidade: 3 (Média-alta). As ameaças I01, I02 e I03 estão relacionadas a falhas de proteção e de verificação de propriedade dos recursos. Como informações de clientes são acessadas por diferentes funcionalidades, essas condições tornam plausível o acesso indevido a dados pertencentes a outros usuários.
+
+Impacto: 4 (Muito alto). Dependendo da abrangência da falha, informações de diversos clientes podem ser expostas. O evento compromete diretamente a confidencialidade de dados dos usuários e pode atingir um conjunto significativo de contas, justificando a classificação de impacto muito alto.
+
+Pontuação: 3 × 4 = 12 (Crítico).
+
+---
+### R08 - Comprometimento de credenciais e informações sensíveis armazenadas pela plataforma
+
+Probabilidade: 3 (Média-alta). As ameaças I05 e I07 indicam condições relacionadas ao armazenamento ou tratamento inadequado de informações sensíveis. Caso o componente responsável pelo armazenamento seja comprometido, esses dados podem ser obtidos indevidamente.
+
+Impacto: 4 (Muito alto). Credenciais e informações sensíveis representam ativos importantes para a segurança da plataforma. Seu comprometimento pode afetar diversos usuários e ainda possibilitar ataques posteriores utilizando os dados obtidos.
+
+Pontuação: 3 × 4 = 12 (Crítico).
+
+---
+### R09 - Indisponibilidade da plataforma de delivery
+
+Probabilidade: 3 (Média-alta). As ameaças D01, D02 e D03 representam diferentes condições capazes de prejudicar a disponibilidade da plataforma. Como o serviço depende de seus recursos computacionais e componentes permanecerem acessíveis, a interrupção é considerada plausível diante das ameaças identificadas.
+
+Impacto: 4 (Muito alto). A indisponibilidade da plataforma compromete diretamente uma operação essencial do sistema. Clientes podem ficar impossibilitados de realizar pedidos, restaurantes de recebê-los e entregadores de executar suas atividades, atingindo simultaneamente diferentes grupos de usuários.
+
+Pontuação: 3 × 4 = 12 (Crítico).
+
+---
+### R10 - Interrupção ou sabotagem de operações relacionadas aos restaurantes e entregas
+
+Probabilidade: 2 (Média-baixa). Diferentemente da indisponibilidade geral da plataforma, este evento exige a exploração de funcionalidades ou operações específicas relacionadas aos restaurantes ou entregadores. Sua concretização, portanto, depende de condições mais específicas.
+
+Impacto: 4 (Muito alto). O evento pode interromper pedidos ou entregas e provocar prejuízos operacionais aos envolvidos. Afetando diversos usuários.
+
+Pontuação: 2 × 4 = 8 (Alto).
+
+---
+### R11 - Obtenção indevida de privilégios administrativos
+
+Probabilidade: 3 (Média-alta). As ameaças E01, E02 e E03 estão relacionadas a falhas de autorização capazes de permitir que um usuário execute operações além dos privilégios correspondentes ao seu perfil. A existência dessas condições torna plausível a obtenção indevida de privilégios elevados.
+
+Impacto: 4 (Muito alto). Uma conta com privilégios administrativos pode possuir acesso a funcionalidades e informações de grande alcance. A obtenção indevida desse nível de privilégio pode afetar diversos usuários, modificar informações relevantes e comprometer operações importantes da plataforma.
+
+Pontuação: 3 × 4 = 12 (Crítico).
+
+---
+### R12 - Abuso de privilégios administrativos com possibilidade de ocultação das ações realizadas
+
+Probabilidade: 2 (Média-baixa). O evento exige que o agente possua ou obtenha previamente privilégios administrativos e que, adicionalmente, existam condições que permitam realizar ações sem rastreabilidade suficiente. A necessidade dessas condições reduz a probabilidade de ocorrência.
+
+Impacto: 4 (Muito alto). Caso o evento ocorra, ações administrativas de grande alcance podem ser executadas contra dados ou funcionalidades importantes. A possibilidade de ocultar ou dificultar a atribuição dessas ações também prejudica a investigação e recuperação após o incidente.
+
+Pontuação: 2 × 4 = 8 (Alto).
+
+---
+### R13 - Comprometimento da integridade do banco de dados por injeção de comandos nas consultas da aplicação
+
+Probabilidade: 4 (Alta). As ameaças T05 e I06 indicam condições diretamente favoráveis à exploração: entradas fornecidas pelo usuário são concatenadas às consultas da aplicação e mensagens de erro detalhadas podem revelar informações sobre sua estrutura interna. Portanto, não se trata apenas de uma possibilidade abstrata, mas da presença de condições concretas que facilitam a exploração.
+
+Impacto: 4 (Muito alto). Uma injeção de comandos bem-sucedida pode comprometer diretamente o banco de dados, possibilitando leitura ou alteração indevida das informações armazenadas. Como o banco constitui um ativo central da plataforma e armazena informações utilizadas por diferentes funcionalidades e usuários, o impacto potencial é muito alto.
+
+Pontuação: 4 × 4 = 16 (Crítico).
+
+---
+### R14 - Captura de credenciais e de dados em trânsito, precedida da identificação das contas existentes na plataforma
+
+Probabilidade: 2 (Média-baixa). As ameaças I04 e I08 indicam que respostas diferentes durante a autenticação podem permitir a identificação de contas existentes e que tráfego sem proteção adequada pode possibilitar a captura das informações transmitidas. Entretanto, a concretização do evento depende da combinação dessas condições e da capacidade do atacante de observar o tráfego, justificando probabilidade média-baixa.
+
+Impacto: 4 (Muito alto). Caso credenciais e dados sejam capturados, contas podem ser posteriormente comprometidas e informações transmitidas podem ter sua confidencialidade violada. Dependendo do alcance da condição de comunicação insegura, diferentes usuários podem ser afetados.
+
+Pontuação: 2 × 4 = 8 (Alto).
+
+---
+### R15 - Distorção de preços e de avaliações após a confirmação do pedido pelo cliente
+
+Probabilidade: 2 (Média-baixa). As ameaças T03 e T06 estão relacionadas a condições específicas do tratamento de preços e avaliações. A ocorrência do evento depende da exploração desses comportamentos durante ou após determinadas operações da plataforma.
+
+Impacto: 3 (Alto). A manipulação pode gerar divergências entre o preço apresentado no momento da compra e aquele posteriormente associado ao produto, além de permitir avaliações que não correspondam a pedidos legítimos. Isso compromete a integridade e a confiança nas informações da plataforma, mas seus efeitos tendem a ser mais localizados do que aqueles associados ao comprometimento de ativos centrais.
+
+Pontuação: 2 × 3 = 6 (Médio).
+
+---
+### R16 - Acesso a dados de clientes e de estabelecimentos por identidade não verificada ou por perfil sem delimitação de escopo
+
+Probabilidade: 3 (Média-alta). As ameaças S04 e E04 indicam problemas relacionados ao compartilhamento de contas de entregador e à verificação de perfis sem confirmação adequada do escopo de acesso. Essas condições tornam plausível que um usuário consiga visualizar informações que não deveriam estar disponíveis ao seu perfil ou contexto.
+
+Impacto: 3 (Alto). O acesso indevido pode comprometer a confidencialidade de informações pertencentes a clientes ou estabelecimentos. Entretanto, considerando o evento atualmente definido, não há indicação suficiente de que a falha permita necessariamente a exposição massiva de dados ou o comprometimento de uma operação essencial da plataforma.
+
+Pontuação: 3 × 3 = 9 (Alto).
+
+---
+### R17 - Esgotamento de recursos da plataforma pelo uso abusivo das funções de envio de mensagens e de upload de imagens
+
+Probabilidade: 3 (Média-alta). As ameaças D05 e D07 indicam ausência de limites adequados no envio de mensagens e no upload de imagens. Essas condições permitem que um usuário realize repetidamente essas operações e consuma recursos da plataforma. Entretanto, o esgotamento efetivo depende de volume suficiente de requisições ou dados enviados.
+
+Impacto: 3 (Alto). O consumo excessivo pode utilizar armazenamento, largura de banda ou capacidade de processamento e provocar degradação das funcionalidades para usuários legítimos. Apesar de relevante, o impacto pode ocorrer gradualmente ou permanecer concentrado nos componentes afetados, diferentemente de uma indisponibilidade completa da plataforma.
+
+Pontuação: 3 × 3 = 9 (Alto).
+
+---
 
 ## 3. Rastreabilidade entre STRIDE e Riscos
 
