@@ -11,8 +11,7 @@ O sistema, os ativos, os usuários, as ameaças STRIDE e os casos de abuso são 
 1. [Metodologia de Avaliação de Riscos](#1-metodologia-de-avaliação-de-riscos)
 2. [Registro Inicial de Riscos](#2-registro-inicial-de-riscos)
 3. [Rastreabilidade entre STRIDE e Riscos](#3-rastreabilidade-entre-stride-e-riscos)
-4. [Próximas Etapas da Avaliação](#4-próximas-etapas-da-avaliação)
-5. [Organização do Projeto](#5-organização-do-projeto)
+4. [Organização do Projeto](#4-organização-do-projeto)
 
 ---
 
@@ -297,57 +296,38 @@ Pontuação: 3 × 3 = 9 (Alto).
 
 ---
 
-## 3. Rastreabilidade entre STRIDE e Riscos
+## 2.3 Priorização dos Riscos
+A priorização considera principalmente a pontuação de risco (Probabilidade × Impacto) atribuída na seção 2.2. Entretanto, como diversos riscos apresentam a mesma pontuação, o desempate leva em conta os seguintes fatores:
+- A extensão do dano financeiro, operacional, reputacional ou legal decorrente da concretização do risco;
+- Se o evento tende a atingir um único usuário ou transação, ou múltiplos perfis simultaneamente;
+- A criticidade do ativo comprometido para o funcionamento da plataforma;
+- A facilidade de reverter ou remediar o dano após o incidente;
+- Se a concretização do risco cria ou agrava condições para a ocorrência de outros riscos do registro;
+- A velocidade com que o risco pode ser explorado e a necessidade de ação imediata, considerando também a probabilidade já atribuída ao risco.
 
-A rastreabilidade permite relacionar os riscos da Etapa 2 às ameaças identificadas anteriormente na Etapa 1.
-
-| Risco | Ameaças STRIDE relacionadas | Relação |
-|---|---|---|
-| R01 | S01, S05 | As ameaças de obtenção de credenciais podem resultar no comprometimento da conta de um cliente. |
-| R02 | S02 | O comprometimento de uma sessão pode permitir que um atacante utilize a API como o usuário legítimo. |
-| R03 | S03 | A falsificação da identidade de um restaurante pode permitir o cadastro de um estabelecimento inexistente. |
-| R04 | T01 | A confiança em valores calculados pelo cliente pode permitir a manipulação do valor do pedido. |
-| R05 | T02, T04 | Alterações indevidas em informações relacionadas à entrega podem gerar fraude operacional. |
-| R06 | RP01, RP02, RP03, RP04 | A ausência de registros íntegros pode dificultar ou impedir a atribuição de responsabilidade pelas ações realizadas. |
-| R07 | I01, I02, I03 | Falhas de proteção e verificação de propriedade podem resultar na exposição indevida de dados de clientes. |
-| R08 | I05, I07 | O armazenamento ou tratamento inadequado de informações sensíveis pode resultar em comprometimento de credenciais e dados. |
-| R09 | D01, D02, D03 | As ameaças de indisponibilidade podem impedir o funcionamento normal da plataforma. |
-| R10 | D04, D06 | A exploração das ameaças de disponibilidade pode interromper operações de restaurantes e entregas. |
-| R11 | E01, E02, E03 | Falhas na autorização podem permitir a obtenção indevida de privilégios administrativos. |
-| R12 | E05, E06 | O abuso de privilégios administrativos e a ausência de controles adequados podem permitir ações privilegiadas sem rastreabilidade suficiente. |
-| R13 | T05, I06 | A concatenação direta da entrada do usuário nas consultas permite a injeção de comandos, e as mensagens de erro detalhadas fornecem ao atacante a estrutura interna necessária para explorá-la. |
-| R14 | I04, I08 | A distinção entre "e-mail não cadastrado" e "senha incorreta" permite construir a lista de contas válidas, e o tráfego sem proteção adequada permite capturar as credenciais correspondentes. |
-| R15 | T03, T06 | O pedido referencia o cardápio em vez de registrar o preço praticado, e as avaliações não verificam a realização do pedido, permitindo distorcer valores e reputação após a compra. |
-| R16 | S04, E04 | O compartilhamento de contas de entregador e a verificação de perfil sem confirmação de escopo permitem o acesso a dados de clientes e de estabelecimentos concorrentes. |
-| R17 | D05, D07 | A ausência de limites no envio de mensagens e no upload de imagens permite consumir cota, armazenamento e banda até a degradação do serviço. |
-
----
-
-## 4. Próximas Etapas da Avaliação
-
-O registro apresentado nesta seção será utilizado como base para as próximas atividades da Etapa 2.
-
-A avaliação deverá complementar cada risco com:
-
-1. probabilidade de ocorrência;
-2. impacto;
-3. justificativa para os valores atribuídos;
-4. pontuação;
-5. nível de risco;
-6. prioridade de tratamento;
-7. estratégia de tratamento;
-8. controles de segurança;
-9. mapeamento para o NIST CSF 2.0;
-10. estimativa de risco residual.
-
-Além dos itens acima, permanecem pendentes de inclusão neste documento:
-
-- a tabela de classificação do nível do risco a partir da pontuação (Baixo, Médio, Alto e Crítico);
-- a coluna "Vulnerabilidade ou condição" no registro de riscos.
+| Prioridade | ID do Risco | Nível | Justificativa |
+|---|---|---|---|
+| 1 | R13 | Crítico | Possui a maior pontuação do registro e compromete diretamente o banco de dados, ativo central da plataforma. |
+| 2 | R11 | Crítico | Pode habilitar outros riscos críticos, como exposição de dados e indisponibilidade, ao conceder controle administrativo indevido. |
+| 3 | R08 | Crítico | Credenciais comprometidas podem ser reutilizadas para tomada de contas, ampliando o alcance do dano. |
+| 4 | R07 | Crítico | Compromete de forma irreversível a privacidade de um grande número de clientes. |
+| 5 | R09 | Crítico | Afeta a disponibilidade de toda a plataforma, mas tende a ser revertido assim que a causa é contornada. |
+| 6 | R01 | Alto | Pode resultar em pedidos fraudulentos e alteração de dados pessoais do cliente afetado. |
+| 7 | R16 | Alto | Expõe dados de clientes e de estabelecimentos, atingindo mais de um perfil de usuário. |
+| 8 | R04 | Alto | Gera prejuízo financeiro concentrado em pedidos específicos, com recuperação viável por estorno. |
+| 9 | R17 | Alto | Tem efeito gradual e mitigável por limites de uso, reduzindo a urgência do tratamento. |
+| 10 | R12 | Alto | A ocultação das ações dificulta identificar e reverter o dano causado. |
+| 11 | R14 | Alto | Credenciais capturadas podem ser reaproveitadas em outros ataques, mesmo após a troca. |
+| 12 | R10 | Alto | Impacta operações pontuais de restaurantes e entregas, com retomada simples após o incidente. |
+| 13 | R06 | Médio | Compromete a apuração de qualquer outro incidente do registro por falta de rastreabilidade. |
+| 14 | R02 | Médio | Tem efeito limitado à duração da sessão, revertido facilmente pela revogação do token. |
+| 15 | R03 | Médio | Prejudica apenas os usuários que interagirem com o estabelecimento fraudulento. |
+| 16 | R05 | Médio | Afeta entregas específicas, com correção manual simples das informações. |
+| 17 | R15 | Médio | Tem os efeitos mais localizados do grupo e a menor urgência de tratamento. |
 
 ---
 
-## 5. Organização do Projeto
+## 4. Organização do Projeto
 
 | Integrante | Responsabilidades |
 |------------|-------------------|
