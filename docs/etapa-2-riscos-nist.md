@@ -113,27 +113,25 @@ A classificação final de cada risco será definida após a atribuição de pro
 
 Os riscos foram derivados das ameaças identificadas na Etapa 1. O registro inicial mantém a rastreabilidade por meio dos identificadores STRIDE utilizados anteriormente.
 
-Nesta etapa inicial, os campos de probabilidade, impacto, pontuação e nível permanecem pendentes de avaliação.
-
 | ID | Origem STRIDE | Evento de risco | Probabilidade | Impacto | Pontuação | Nível |
 |---|---|---|---:|---:|---:|---|
-| R01 | S01, S05 | Comprometimento da conta de um cliente por obtenção indevida de suas credenciais | — | — | — | — |
-| R02 | S02 | Utilização indevida de uma sessão legítima por meio do comprometimento de seu token | — | — | — | — |
-| R03 | S03 | Cadastro de restaurante inexistente para obtenção fraudulenta de pagamentos e dados | — | — | — | — |
-| R04 | T01 | Manipulação do valor de um pedido antes da realização do pagamento | — | — | — | — |
-| R05 | T02, T04 | Alteração indevida de informações relacionadas ao processo de entrega | — | — | — | — |
-| R06 | RP01, RP02, RP03, RP04 | Impossibilidade de atribuir responsabilidade a ações realizadas no sistema | — | — | — | — |
-| R07 | I01, I02, I03 | Exposição indevida de dados pertencentes a clientes | — | — | — | — |
-| R08 | I05, I07 | Comprometimento de credenciais e informações sensíveis armazenadas pela plataforma | — | — | — | — |
-| R09 | D01, D02, D03 | Indisponibilidade da plataforma de delivery | — | — | — | — |
-| R10 | D04, D06 | Interrupção ou sabotagem de operações relacionadas aos restaurantes e entregas | — | — | — | — |
-| R11 | E01, E02, E03 | Obtenção indevida de privilégios administrativos | — | — | — | — |
-| R12 | E05, E06 | Abuso de privilégios administrativos com possibilidade de ocultação das ações realizadas | — | — | — | — |
-| R13 | T05, I06 | Comprometimento da integridade do banco de dados por injeção de comandos nas consultas da aplicação | — | — | — | — |
-| R14 | I04, I08 | Captura de credenciais e de dados em trânsito, precedida da identificação das contas existentes na plataforma | — | — | — | — |
-| R15 | T03, T06 | Distorção de preços e de avaliações após a confirmação do pedido pelo cliente | — | — | — | — |
-| R16 | S04, E04 | Acesso a dados de clientes e de estabelecimentos por identidade não verificada ou por perfil sem delimitação de escopo | — | — | — | — |
-| R17 | D05, D07 | Esgotamento de recursos da plataforma pelo uso abusivo das funções de envio de mensagens e de upload de imagens | — | — | — | — |
+| R01 | S01, S05 | Comprometimento da conta de um cliente por obtenção indevida de suas credenciais | 3 | 3 | 9 | Alto |
+| R02 | S02 | Utilização indevida de uma sessão legítima por meio do comprometimento de seu token | 2 | 3 | 6 | Médio |
+| R03 | S03 | Cadastro de restaurante inexistente para obtenção fraudulenta de pagamentos e dados | 2 | 3 | 6 | Médio |
+| R04 | T01 | Manipulação do valor de um pedido antes da realização do pagamento | 3 | 3 | 9 | Alto |
+| R05 | T02, T04 | Alteração indevida de informações relacionadas ao processo de entrega | 2 | 3 | 6 | Médio |
+| R06 | RP01, RP02, RP03, RP04 | Impossibilidade de atribuir responsabilidade a ações realizadas no sistema | 2 | 3 | 6 | Médio |
+| R07 | I01, I02, I03 | Exposição indevida de dados pertencentes a clientes | 3 | 4 | 12 | Crítico |
+| R08 | I05, I07 | Comprometimento de credenciais e informações sensíveis armazenadas pela plataforma | 3 | 4 | 12 | Crítico |
+| R09 | D01, D02, D03 | Indisponibilidade da plataforma de delivery | 3 | 4 | 12 | Crítico |
+| R10 | D04, D06 | Interrupção ou sabotagem de operações relacionadas aos restaurantes e entregas | 2 | 4 | 8 | Alto |
+| R11 | E01, E02, E03 | Obtenção indevida de privilégios administrativos | 3 | 4 | 12 | Crítico |
+| R12 | E05, E06 | Abuso de privilégios administrativos com possibilidade de ocultação das ações realizadas | 2 | 4 | 8 | Alto |
+| R13 | T05, I06 | Comprometimento da integridade do banco de dados por injeção de comandos nas consultas da aplicação | 4 | 4 | 16 | Crítico |
+| R14 | I04, I08 | Captura de credenciais e de dados em trânsito, precedida da identificação das contas existentes na plataforma | 2 | 4 | 8 | Alto |
+| R15 | T03, T06 | Distorção de preços e de avaliações após a confirmação do pedido pelo cliente | 2 | 3 | 6 | Médio |
+| R16 | S04, E04 | Acesso a dados de clientes e de estabelecimentos por identidade não verificada ou por perfil sem delimitação de escopo | 3 | 3 | 9 | Alto |
+| R17 | D05, D07 | Esgotamento de recursos da plataforma pelo uso abusivo das funções de envio de mensagens e de upload de imagens | 3 | 3 | 9 | Alto |
 
 Os riscos **R13** a **R17** foram acrescentados após a revisão da cobertura do registro. A verificação constatou que dez ameaças da Etapa 1 (S04, T03, T05, T06, I04, I06, I08, D05, D07 e E04) ainda não haviam originado nenhum risco, entre elas a injeção de comandos SQL (T05) e o tráfego sem proteção adequada (I04). Com esses cinco riscos, as 36 ameaças identificadas na Etapa 1 passam a estar integralmente cobertas.
 
