@@ -395,6 +395,43 @@ Os controles apresentados acima são exemplos destinados a ilustrar a distinçã
 
 ---
 
+### 3.4. Mapeamento dos Riscos para as Funções do NIST CSF 2.0
+
+O mapeamento indica quais funções são relevantes para o tratamento de cada risco. Para que a marcação não fosse automática, cada função foi associada a um critério explícito de aplicação, e uma função só foi marcada quando o risco satisfaz o critério correspondente.
+
+| Função | Marcada quando |
+|---|---|
+| Govern | O tratamento depende de uma decisão, política ou atribuição de responsabilidade anterior ao controle técnico, inclusive a contratação de terceiros. |
+| Identify | O controle só pode ser corretamente dimensionado após um levantamento que ainda não existe, como inventário de ativos, de fluxos, de permissões ou de trechos de código. |
+| Protect | Existe salvaguarda preventiva capaz de reduzir a probabilidade ou o impacto do evento. |
+| Detect | O evento, ou algum de seus precursores, produz sinal observável na telemetria da própria plataforma. |
+| Respond | Existe ação concreta de contenção a ser executada após a detecção. |
+| Recover | Há estado do sistema, dos dados ou dos usuários que precise ser restaurado após o evento. |
+
+#### Matriz de mapeamento
+
+| Risco | Nível | Govern | Identify | Protect | Detect | Respond | Recover |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| R01 | Alto | X | — | X | X | X | X |
+| R02 | Médio | — | — | X | X | X | — |
+| R03 | Médio | X | — | X | X | X | X |
+| R04 | Alto | — | X | X | X | X | X |
+| R05 | Médio | — | — | X | X | X | X |
+| R06 | Médio | X | X | X | X | — | — |
+| R07 | Crítico | X | X | X | X | X | X |
+| R08 | Crítico | X | X | X | X | X | X |
+| R09 | Crítico | X | X | X | X | X | X |
+| R10 | Alto | — | — | X | X | X | X |
+| R11 | Crítico | X | X | X | X | X | X |
+| R12 | Alto | X | — | X | X | X | X |
+| R13 | Crítico | X | X | X | X | X | X |
+| R14 | Alto | — | X | X | X | X | X |
+| R15 | Médio | — | — | X | X | X | X |
+| R16 | Alto | — | X | X | X | X | — |
+| R17 | Alto | X | X | X | X | X | X |
+
+---
+
 ## 4. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
