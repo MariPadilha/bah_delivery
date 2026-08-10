@@ -1,6 +1,8 @@
-# Bah Delivery
+# Etapa 1 — Casos de Abuso e Modelagem de Ameaças com STRIDE
 
 O Bah Delivery é uma plataforma web voltada para o gerenciamento integrado de pedidos e entregas de refeições, conectando diferentes perfis de usuário em um único ambiente digital. O sistema permite que clientes consultem cardápios, realizem pedidos e acompanhem o status das entregas, enquanto restaurantes podem administrar seus produtos, receber e organizar pedidos. Os entregadores possuem acesso às solicitações de entrega e informações necessárias para a execução do serviço, e os administradores são responsáveis pelo gerenciamento e controle geral da plataforma.
+
+Este documento apresenta a análise de segurança do sistema antes de sua implementação, identificando ativos, ameaças e comportamentos maliciosos. A avaliação e o tratamento dos riscos derivados destas ameaças estão em [Etapa 2 — Avaliação e Tratamento de Riscos](./etapa-2-riscos-nist.md).
 
 ---
 
@@ -199,8 +201,8 @@ Esses ativos servirão como base para a etapa de Modelagem de Ameaças (STRIDE),
 
 Esta seção apresenta os diagramas desenvolvidos a fim de oferecer uma visão simplificada de como os usuários e componentes interagem dentro do sistema de delivery.
 
-- [Diagrama de Casos de Uso](./diagramas/diagrama-casos-de-uso.png)
-- [Diagrama de Contexto](./diagramas/diagrama-de-contexto.png)
+- [Diagrama de Casos de Uso](../diagramas/etapa-1/diagrama-casos-de-uso.png)
+- [Diagrama de Contexto](../diagramas/etapa-1/diagrama-de-contexto.png)
 
 ---
 
@@ -239,10 +241,10 @@ O Bah Delivery intermedeia relações entre partes que não se conhecem e que po
 
 | ID | Componente ou ativo | Ameaça identificada | Possível impacto |
 |----|---------------------|---------------------|------------------|
-| R01 | Logs do sistema e informações de pagamento | O cliente nega ter realizado um pedido e solicita o estorno da cobrança, e o sistema não mantém registro da operação com data, hora, endereço de origem e dispositivo utilizado | Perda financeira com estornos indevidos, sem que a plataforma disponha de evidência para contestar a alegação |
-| R02 | Histórico de entregas | O entregador nega ter retirado o pedido no restaurante ou tê-lo entregue ao cliente, pois a conclusão da entrega não exige comprovante, registro fotográfico ou geolocalização | Disputa entre cliente, restaurante e entregador sem qualquer elemento objetivo que permita atribuir responsabilidade |
-| R03 | Cardápios e pedidos | O restaurante nega ter alterado o preço de um produto ou ter cancelado um pedido, uma vez que o sistema não registra o histórico de alterações do cardápio nem a autoria dos cancelamentos | Conflito com o cliente, impossibilidade de apurar a conduta do estabelecimento e perda de confiança na plataforma |
-| R04 | Logs do sistema | Um administrador com acesso direto ao banco de dados apaga ou edita registros de log para ocultar operações que realizou | Eliminação das evidências de uso indevido, inviabilizando a auditoria e a responsabilização de quem detém maior privilégio no sistema |
+| RP01 | Logs do sistema e informações de pagamento | O cliente nega ter realizado um pedido e solicita o estorno da cobrança, e o sistema não mantém registro da operação com data, hora, endereço de origem e dispositivo utilizado | Perda financeira com estornos indevidos, sem que a plataforma disponha de evidência para contestar a alegação |
+| RP02 | Histórico de entregas | O entregador nega ter retirado o pedido no restaurante ou tê-lo entregue ao cliente, pois a conclusão da entrega não exige comprovante, registro fotográfico ou geolocalização | Disputa entre cliente, restaurante e entregador sem qualquer elemento objetivo que permita atribuir responsabilidade |
+| RP03 | Cardápios e pedidos | O restaurante nega ter alterado o preço de um produto ou ter cancelado um pedido, uma vez que o sistema não registra o histórico de alterações do cardápio nem a autoria dos cancelamentos | Conflito com o cliente, impossibilidade de apurar a conduta do estabelecimento e perda de confiança na plataforma |
+| RP04 | Logs do sistema | Um administrador com acesso direto ao banco de dados apaga ou edita registros de log para ocultar operações que realizou | Eliminação das evidências de uso indevido, inviabilizando a auditoria e a responsabilização de quem detém maior privilégio no sistema |
 
 ### Information Disclosure (Exposição indevida de informações)
 
@@ -283,7 +285,7 @@ O sistema define quatro perfis com poderes bastante distintos, e o ativo **Contr
 | E02 | Cadastro de usuários e controle de permissões | O perfil do usuário é recebido como um campo da requisição de cadastro ou de atualização de dados e gravado sem validação no servidor | Um atacante cria ou converte a própria conta em administrador ou restaurante durante o cadastro, sem qualquer aprovação da plataforma |
 | E03 | Sessões de usuário e API REST | O token de sessão carrega o perfil do usuário e é aceito sem verificação adequada da assinatura, ou é assinado com um segredo fraco e previsível | Forja de um token válido com perfil de administrador, concedendo acesso irrestrito ao sistema sem passar pela autenticação |
 | E04 | Dados dos restaurantes e cardápios | As operações de gerenciamento de cardápio e de pedidos verificam apenas que o usuário é um restaurante, sem confirmar que o registro manipulado pertence ao estabelecimento autenticado | Um restaurante altera preços, remove produtos ou consulta os pedidos de um concorrente, obtendo vantagem competitiva indevida |
-| E05 | Controle de permissões | O perfil de administrador concentra todas as capacidades do sistema, sem segregação entre a gestão de usuários, a consulta de logs e o acesso a dados de pagamento | O comprometimento de uma única conta administrativa entrega o controle total da plataforma, incluindo a supressão de evidências descrita em R04 |
+| E05 | Controle de permissões | O perfil de administrador concentra todas as capacidades do sistema, sem segregação entre a gestão de usuários, a consulta de logs e o acesso a dados de pagamento | O comprometimento de uma única conta administrativa entrega o controle total da plataforma, incluindo a supressão de evidências descrita em RP04 |
 | E06 | Controle de permissões e logs do sistema | A alteração de permissões de uma conta não exige reautenticação nem gera registro de auditoria da mudança | Um acesso administrativo obtido por meio de S01 ou S02 concede privilégios permanentes a contas controladas pelo atacante, sem que a elevação seja detectada |
 
 ---
@@ -373,7 +375,7 @@ Os casos foram construídos a partir das ameaças descritas na seção anterior,
 | **Objetivo** | Receber o valor referente à entrega sem efetivamente entregar o pedido ao cliente |
 | **Condições necessárias** | A atualização do status da entrega não exige comprovante, registro fotográfico, código de confirmação ou geolocalização; a conclusão da entrega libera o pagamento automaticamente |
 | **Impacto esperado** | Cliente lesado sem receber o produto pago, disputa entre as três partes sem elementos objetivos que permitam atribuir responsabilidade e desgaste da reputação da plataforma |
-| **Ameaças relacionadas** | T04 e R02 |
+| **Ameaças relacionadas** | T04 e RP02 |
 | **Categorias STRIDE** | Tampering e Repudiation |
 
 **Sequência de ações**
@@ -449,7 +451,7 @@ Os casos foram construídos a partir das ameaças descritas na seção anterior,
 | **Objetivo** | Utilizar o próprio nível de privilégio para fins indevidos e eliminar os registros que permitiriam identificá-lo |
 | **Condições necessárias** | O perfil de administrador concentra todas as capacidades do sistema, sem segregação de funções; a alteração de permissões não exige reautenticação nem gera registro de auditoria; os administradores possuem acesso direto ao banco de dados onde os logs são armazenados |
 | **Impacto esperado** | Abuso continuado de privilégio sem possibilidade de detecção ou responsabilização, comprometendo a confiabilidade de todo o mecanismo de auditoria e de controle de acesso |
-| **Ameaças relacionadas** | E05, E06 e R04 |
+| **Ameaças relacionadas** | E05, E06 e RP04 |
 | **Categorias STRIDE** | Elevation of Privilege e Repudiation |
 
 **Sequência de ações**
@@ -475,7 +477,7 @@ A análise das seis categorias do STRIDE evidenciou que as ameaças mais preocup
 | I05 — Armazenamento inseguro de senhas e dados de pagamento | Transforma um único acesso indevido ao banco de dados no comprometimento definitivo de todos os usuários da plataforma |
 | T01 — Confiança em valores calculados no cliente | Produz prejuízo financeiro direto e recorrente, e atinge simultaneamente os restaurantes e a plataforma |
 | S01 — Ausência de limitação de tentativas e de múltiplo fator | Viabiliza o comprometimento de contas em massa e serve de porta de entrada para a maior parte dos demais cenários |
-| R02 e R04 — Ausência de registros íntegros das operações | Impede não apenas a responsabilização após um incidente, mas a própria constatação de que o incidente ocorreu |
+| RP02 e RP04 — Ausência de registros íntegros das operações | Impede não apenas a responsabilização após um incidente, mas a própria constatação de que o incidente ocorreu |
 
 ### Ativos Críticos
 
@@ -536,151 +538,3 @@ Durante a elaboração deste trabalho, o grupo enfrentou as seguintes dificuldad
 | Mariana Padilha | Identificação e descrição do sistema |
 | Matheus Ciocca | Modelagem de ameaças STRIDE (Spoofing, Tampering e Repudiation) |
 
-
----
-
-# Etapa 2 — Avaliação e Tratamento de Riscos
-
-## 1. Metodologia de Avaliação de Riscos
-
-A avaliação de riscos do Bah Delivery foi estruturada a partir das ameaças identificadas na Etapa 1 por meio do modelo STRIDE.
-
-Para esta etapa, as ameaças identificadas anteriormente foram utilizadas como origem para a definição de eventos de risco. O objetivo é estabelecer uma relação rastreável entre as ameaças da Etapa 1 e os riscos que serão posteriormente avaliados, priorizados e tratados.
-
-A avaliação dos riscos será realizada considerando dois fatores:
-
-- **Probabilidade:** representa a possibilidade de ocorrência do evento de risco nas condições atuais do sistema.
-- **Impacto:** representa a gravidade das consequências caso o evento de risco ocorra.
-
-A pontuação de cada risco será obtida pela multiplicação da probabilidade pelo impacto.
-
-> **Risco = Probabilidade × Impacto**
-
-A probabilidade e o impacto serão avaliados utilizando uma escala de 1 a 4.
-
----
-
-## 1.1 Critérios de Probabilidade
-
-| Valor | Classificação | Critério |
-|---:|---|---|
-| 1 | Baixa | O evento de risco é pouco provável de ocorrer nas condições atuais do sistema. |
-| 2 | Média-baixa | O evento de risco pode ocorrer, mas depende de condições específicas. |
-| 3 | Média-alta | O evento de risco é plausível e existem condições favoráveis para sua ocorrência. |
-| 4 | Alta | O evento de risco é provável de ocorrer nas condições atuais do sistema. |
-
----
-
-## 1.2 Critérios de Impacto
-
-| Valor | Classificação | Critério |
-|---:|---|---|
-| 1 | Baixo | O evento causa consequências limitadas para o sistema ou para seus usuários. |
-| 2 | Médio | O evento pode afetar parcialmente uma operação, ativo ou grupo limitado de usuários. |
-| 3 | Alto | O evento pode causar prejuízos relevantes ou comprometer ativos importantes do sistema. |
-| 4 | Muito alto | O evento pode comprometer ativos críticos, diversos usuários ou operações essenciais da plataforma. |
-
----
-
-## 1.3 Cálculo do Risco
-
-A pontuação do risco será calculada pela multiplicação entre a probabilidade e o impacto:
-
-> **Risco = Probabilidade × Impacto**
-
-Dessa forma, a pontuação mínima possível é 1 e a máxima é 16.
-
-| Probabilidade | Impacto | Pontuação |
-|---:|---:|---:|
-| 1 | 1 | 1 |
-| 1 | 2 | 2 |
-| 1 | 3 | 3 |
-| 1 | 4 | 4 |
-| 2 | 1 | 2 |
-| 2 | 2 | 4 |
-| 2 | 3 | 6 |
-| 2 | 4 | 8 |
-| 3 | 1 | 3 |
-| 3 | 2 | 6 |
-| 3 | 3 | 9 |
-| 3 | 4 | 12 |
-| 4 | 1 | 4 |
-| 4 | 2 | 8 |
-| 4 | 3 | 12 |
-| 4 | 4 | 16 |
-
----
-
-## 1.4 Matriz de Risco
-
-| Probabilidade \ Impacto | 1 | 2 | 3 | 4 |
-|---|---:|---:|---:|---:|
-| **1 — Baixa** | 1 | 2 | 3 | 4 |
-| **2 — Média-baixa** | 2 | 4 | 6 | 8 |
-| **3 — Média-alta** | 3 | 6 | 9 | 12 |
-| **4 — Alta** | 4 | 8 | 12 | 16 |
-
-A classificação final de cada risco será definida após a atribuição de probabilidade e impacto.
-
----
-
-## 2. Registro Inicial de Riscos
-
-Os riscos foram derivados das ameaças identificadas na Etapa 1. O registro inicial mantém a rastreabilidade por meio dos identificadores STRIDE utilizados anteriormente.
-
-Nesta etapa inicial, os campos de probabilidade, impacto, pontuação e nível permanecem pendentes de avaliação.
-
-| ID | Origem STRIDE | Evento de risco | Probabilidade | Impacto | Pontuação | Nível |
-|---|---|---|---:|---:|---:|---|
-| R01 | S01, S05 | Comprometimento da conta de um cliente por obtenção indevida de suas credenciais | — | — | — | — |
-| R02 | S02 | Utilização indevida de uma sessão legítima por meio do comprometimento de seu token | — | — | — | — |
-| R03 | S03 | Cadastro de restaurante inexistente para obtenção fraudulenta de pagamentos e dados | — | — | — | — |
-| R04 | T01 | Manipulação do valor de um pedido antes da realização do pagamento | — | — | — | — |
-| R05 | T02, T04 | Alteração indevida de informações relacionadas ao processo de entrega | — | — | — | — |
-| R06 | R01, R02, R03, R04 | Impossibilidade de atribuir responsabilidade a ações realizadas no sistema | — | — | — | — |
-| R07 | I01, I02, I03 | Exposição indevida de dados pertencentes a clientes | — | — | — | — |
-| R08 | I05, I07 | Comprometimento de credenciais e informações sensíveis armazenadas pela plataforma | — | — | — | — |
-| R09 | D01, D02, D03 | Indisponibilidade da plataforma de delivery | — | — | — | — |
-| R10 | D04, D06 | Interrupção ou sabotagem de operações relacionadas aos restaurantes e entregas | — | — | — | — |
-| R11 | E01, E02, E03 | Obtenção indevida de privilégios administrativos | — | — | — | — |
-| R12 | E05, E06 | Abuso de privilégios administrativos com possibilidade de ocultação das ações realizadas | — | — | — | — |
-
----
-
-## 3. Rastreabilidade entre STRIDE e Riscos
-
-A rastreabilidade permite relacionar os riscos da Etapa 2 às ameaças identificadas anteriormente na Etapa 1.
-
-| Risco | Ameaças STRIDE relacionadas | Relação |
-|---|---|---|
-| R01 | S01, S05 | As ameaças de obtenção de credenciais podem resultar no comprometimento da conta de um cliente. |
-| R02 | S02 | O comprometimento de uma sessão pode permitir que um atacante utilize a API como o usuário legítimo. |
-| R03 | S03 | A falsificação da identidade de um restaurante pode permitir o cadastro de um estabelecimento inexistente. |
-| R04 | T01 | A confiança em valores calculados pelo cliente pode permitir a manipulação do valor do pedido. |
-| R05 | T02, T04 | Alterações indevidas em informações relacionadas à entrega podem gerar fraude operacional. |
-| R06 | R01, R02, R03, R04 | A ausência de registros íntegros pode dificultar ou impedir a atribuição de responsabilidade pelas ações realizadas. |
-| R07 | I01, I02, I03 | Falhas de proteção e verificação de propriedade podem resultar na exposição indevida de dados de clientes. |
-| R08 | I05, I07 | O armazenamento ou tratamento inadequado de informações sensíveis pode resultar em comprometimento de credenciais e dados. |
-| R09 | D01, D02, D03 | As ameaças de indisponibilidade podem impedir o funcionamento normal da plataforma. |
-| R10 | D04, D06 | A exploração das ameaças de disponibilidade pode interromper operações de restaurantes e entregas. |
-| R11 | E01, E02, E03 | Falhas na autorização podem permitir a obtenção indevida de privilégios administrativos. |
-| R12 | E05, E06 | O abuso de privilégios administrativos e a ausência de controles adequados podem permitir ações privilegiadas sem rastreabilidade suficiente. |
-
----
-
-## 4. Próximas Etapas da Avaliação
-
-O registro apresentado nesta seção será utilizado como base para as próximas atividades da Etapa 2.
-
-A avaliação deverá complementar cada risco com:
-
-1. probabilidade de ocorrência;
-2. impacto;
-3. justificativa para os valores atribuídos;
-4. pontuação;
-5. nível de risco;
-6. prioridade de tratamento;
-7. estratégia de tratamento;
-8. controles de segurança;
-9. mapeamento para o NIST CSF 2.0;
-10. estimativa de risco residual.
