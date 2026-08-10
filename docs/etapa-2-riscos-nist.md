@@ -367,6 +367,34 @@ O tratamento dos riscos será realizado considerando as seguintes estratégias:
 
 ---
 
+### 3.3. Funções do NIST CSF 2.0
+
+O NIST Cybersecurity Framework 2.0 organiza os resultados esperados de segurança em seis funções. As funções descrevem **o que precisa ser alcançado**, e não como isso será feito: elas não são controles nem se confundem com as medidas técnicas adotadas pela plataforma.
+
+| Função | Finalidade |
+|---|---|
+| **Govern** | Definir políticas, responsabilidades, prioridades e critérios de decisão sobre o risco. |
+| **Identify** | Conhecer os ativos, as dependências, as vulnerabilidades e os riscos existentes. |
+| **Protect** | Implementar salvaguardas que reduzam a probabilidade ou o impacto do evento. |
+| **Detect** | Perceber eventos suspeitos, falhas e possíveis incidentes. |
+| **Respond** | Conter, analisar, comunicar e tratar o incidente ocorrido. |
+| **Recover** | Restaurar serviços e dados e reduzir os prejuízos causados. |
+
+A distinção entre função, resultado esperado e controle é necessária para evitar que o framework seja utilizado apenas como rótulo. A função indica a categoria do resultado; o resultado esperado descreve a situação que se pretende alcançar no sistema; e o controle é a medida concreta e verificável que produz esse resultado.
+
+| Função | Resultado esperado no Bah Delivery | Controle que produz o resultado |
+|---|---|---|
+| Govern | A plataforma define quem pode possuir privilégios administrativos e com que periodicidade essa concessão é revista. | Política de concessão e revisão periódica de privilégios administrativos, com responsável designado. |
+| Identify | A plataforma conhece todos os pontos do código em que a entrada do usuário compõe uma consulta ao banco de dados. | Inventário das consultas dinâmicas obtido por análise estática do código-fonte. |
+| Protect | O acesso às contas administrativas não pode ser obtido apenas com usuário e senha. | Autenticação multifator obrigatória para o perfil administrador. |
+| Detect | Tentativas repetidas de autenticação malsucedida contra uma mesma conta são percebidas pela plataforma. | Regra de alerta para cinco falhas de autenticação na mesma conta em dez minutos. |
+| Respond | Uma conta identificada como comprometida deixa de operar antes que o dano aumente. | Bloqueio automático da conta e revogação de todas as suas sessões ativas. |
+| Recover | Os pedidos afetados por um incidente voltam a refletir os valores corretos. | Procedimento documentado de estorno e recomposição dos pedidos atingidos. |
+
+Os controles apresentados acima são exemplos destinados a ilustrar a distinção. Os controles efetivamente propostos para cada risco são definidos no plano de tratamento.
+
+---
+
 ## 4. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
