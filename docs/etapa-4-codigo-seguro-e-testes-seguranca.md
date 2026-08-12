@@ -9,7 +9,7 @@ Para cada prática selecionada, os testes de segurança são definidos **antes d
 ## Sumário
 
 1. [Prática 1 — Consultas Parametrizadas e Validação de Entrada](#1-prática-1--consultas-parametrizadas-e-validação-de-entrada)
-2. [Prática 2 — *a definir*](#2-prática-2--nome-da-prática)
+2. [Prática 2 — *a definir*](#2-prática-2--autorização no servidor)
 3. [Rastreabilidade das Práticas Definidas](#3-rastreabilidade-das-práticas-definidas)
 4. [Considerações Finais](#4-considerações-finais)
 5. [Distribuição Integrante X Responsabilidades](#5-distribuição-integrante-x-responsabilidades)
@@ -121,26 +121,76 @@ O teste será considerado aprovado se a tentativa não modificar o comportamento
 
 ---
 
-## 2. Prática 2 — [Nome da prática]
+## 2. ### Testes — Prática 2: Autorização no servidor
 
 ### 2.1 Risco relacionado
+
+- **R11 — Obtenção indevida de privilégios administrativos.**
+- **R16 — Acesso a dados de clientes e de estabelecimentos por identidade não verificada ou por perfil sem delimitação de escopo.**
+
+A prática busca garantir que as permissões sejam verificadas no servidor, impedindo que usuários executem ações administrativas ou acessem dados que estejam fora do escopo permitido para seu perfil.
 
 ---
 
 ### 2.2 Requisito de segurança
 
+O sistema deve validar, no servidor, a identidade e o perfil do usuário antes de permitir o acesso a recursos protegidos. Usuários autenticados devem acessar somente os recursos e operações autorizados para seu perfil, impedindo a obtenção indevida de privilégios administrativos e o acesso a dados fora do escopo permitido.
+
 ---
 
 ### 2.3 Testes de Segurança
 
-| ID       | Tipo                          | Entrada ou ação | Resultado seguro esperado |
-| -------- | ----------------------------- | --------------- | ------------------------- |
-| **TS03** | Caso válido                   | [A definir]     | [A definir]               |
-| **TS04** | Caso malicioso/não autorizado | [A definir]     | [A definir]               |
+| ID | Tipo | Entrada ou ação | Resultado seguro esperado |
+| --- | --- | --- | --- |
+| **TS03** | Caso válido | Usuário autenticado e autorizado solicita acesso a um recurso permitido para seu perfil | O servidor valida a autorização e permite o acesso ao recurso |
+| **TS04** | Caso malicioso/não autorizado | Usuário comum tenta executar uma ação administrativa ou acessar dados fora do escopo permitido para seu perfil | O servidor nega a operação e não retorna os dados ou executa a ação protegida |
 
-### 2.3.1 TS03 — [Nome]
+### 2.3.1 TS03 — Acesso autorizado conforme o perfil
 
-### 2.3.2 TS04 — [Nome]
+**Objetivo:** verificar se um usuário autenticado e devidamente autorizado consegue acessar normalmente um recurso permitido para seu perfil.
+
+```python
+def test_usuario_autorizado_pode_acessar_recurso():
+    usuario = {
+        "id": 10,
+        "perfil": "cliente",
+        "autenticado": True
+    }
+
+    recurso = {
+        "cliente_id": 10,
+        "dados": "Dados do cliente"
+    }
+
+    resultado = acessar_recurso(usuario, recurso)
+
+    assert resultado == "Dados do cliente"
+```
+
+**Resultado esperado:** o servidor deve validar a identidade e as permissões do usuário e permitir o acesso, pois o recurso solicitado está dentro do escopo autorizado para seu perfil.
+
+### 2.3.2 TS04 — Bloqueio de acesso não autorizado
+
+**Objetivo:** verificar se o servidor impede que um usuário obtenha privilégios administrativos ou acesse informações fora do escopo permitido para seu perfil.
+
+```python
+def test_usuario_nao_pode_acessar_recurso_sem_autorizacao():
+    usuario = {
+        "id": 10,
+        "perfil": "cliente",
+        "autenticado": True
+    }
+
+    try:
+        executar_acao_administrativa(usuario)
+        acesso_permitido = True
+    except PermissionError:
+        acesso_permitido = False
+
+    assert acesso_permitido is False
+```
+
+**Resultado esperado:** o servidor deve negar a operação, pois um usuário com perfil `cliente` não possui autorização para executar ações administrativas. A mesma validação deve impedir o acesso a dados de clientes ou estabelecimentos que estejam fora do escopo autorizado para o usuário.
 
 ---
 
