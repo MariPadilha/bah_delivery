@@ -1,0 +1,77 @@
+%% Bah Delivery — Etapa 3 — Diagrama da Arquitetura Segura
+%% Componentes organizados por zonas de confianca, com a posicao dos principais
+%% controles definidos no plano de tratamento da Etapa 2 (secao 3.5.2).
+%% Os requisitos RS01, RS02 e RS03 estao marcados nos componentes que os realizam.
+%% Fonte versionada. Para gerar a imagem:
+%%   npx @mermaid-js/mermaid-cli -i arquitetura-segura.mmd -o arquitetura-segura.png -w 1800 -b white
+
+%%{init: {"flowchart": {"curve": "basis", "nodeSpacing": 40, "rankSpacing": 50}} }%%
+flowchart TB
+
+    subgraph Z0["ZONA NAO CONFIAVEL · nenhuma decisao de seguranca ocorre aqui"]
+        direction LR
+        USR["Usuarios<br/>cliente · restaurante<br/>entregador · administrador"]
+        UI["Interface web<br/>oculta as opcoes indisponiveis a cada perfil,<br/>mas nao decide o acesso"]
+        USR --> UI
+    end
+
+    subgraph Z1["ZONA DE BORDA"]
+        BORDA["CDN + WAF<br/>C89 · HTTPS com TLS 1.2 ou superior<br/>C53 · absorve o volume antes da origem<br/>C54 · limitacao de requisicoes por conta e origem"]
+    end
+
+    subgraph Z2["ZONA DE APLICACAO · o servidor e a unica autoridade"]
+        API["API REST · ponto unico de entrada"]
+        AUTH["<b>Servico de autenticacao</b> — RS01<br/>C02 · segundo fator<br/>C03 · tentativas de login limitadas<br/>C09 · token de sessao curto e vinculado"]
+        AUTZ["<b>Regras de autorizacao</b> — RS03<br/>C66 · verificada no servidor, negacao por padrao<br/>C67 · perfil nunca lido da requisicao<br/>C68 · perfil resolvido na conta armazenada"]
+        VAL["<b>Validacao e acesso a dados</b> — RS02<br/>C81 · consulta parametrizada<br/>C82 · validacao da entrada<br/>C84 · erro generico ao cliente"]
+    end
+
+    subgraph Z3["ZONA DE DADOS"]
+        BD["Banco de dados<br/>C83 · conta da aplicacao com privilegio minimo<br/>C44 · senhas em Argon2id<br/>C46 · criptografia em repouso"]
+    end
+
+    subgraph Z4["ZONA DE AUDITORIA"]
+        LOG["Logs e monitoramento<br/>C30 · registro apenas de acrescimo, encadeado<br/>C31 · conteudo minimo, dados sensiveis mascarados<br/>C06 C39 C57 · regras de alerta"]
+    end
+
+    subgraph Z5["SERVICOS EXTERNOS"]
+        direction LR
+        PAG["Provedor de pagamento<br/>C45 · a plataforma retem apenas<br/>a referencia tokenizada"]
+        IMG["Armazenamento de imagens + CDN<br/>C109 · consumo fora do servidor da aplicacao"]
+    end
+
+    UI --> BORDA
+    BORDA --> API
+    API --> AUTH
+    AUTH -->|"identidade confiavel"| AUTZ
+    AUTZ -->|"operacao concedida"| VAL
+    AUTZ -.->|"negado por padrao · 403 generico"| API
+    VAL -->|"parametros vinculados"| BD
+    VAL -->|"token do meio de pagamento"| PAG
+    API -->|"imagens do cardapio"| IMG
+    AUTH --> LOG
+    AUTZ --> LOG
+    VAL --> LOG
+
+    style Z0 fill:#fdecea,stroke:#c0392b,stroke-width:2px,color:#7b241c
+    style Z1 fill:#fef5e7,stroke:#b9770e,stroke-width:2px,color:#7e5109
+    style Z2 fill:#eaf4fb,stroke:#2471a3,stroke-width:2px,color:#1a5276
+    style Z3 fill:#eafaf1,stroke:#1e8449,stroke-width:2px,color:#145a32
+    style Z4 fill:#f4ecf7,stroke:#6c3483,stroke-width:2px,color:#4a235a
+    style Z5 fill:#f2f3f4,stroke:#566573,stroke-width:2px,color:#2c3e50
+
+    classDef naoConfiavel fill:#ffffff,stroke:#c0392b,stroke-width:1px,color:#7b241c
+    classDef borda fill:#ffffff,stroke:#b9770e,stroke-width:1px,color:#7e5109
+    classDef app fill:#ffffff,stroke:#2471a3,stroke-width:1px,color:#1a5276
+    classDef appRS fill:#ffffff,stroke:#1a5276,stroke-width:3px,color:#1a5276
+    classDef dados fill:#ffffff,stroke:#1e8449,stroke-width:1px,color:#145a32
+    classDef audit fill:#ffffff,stroke:#6c3483,stroke-width:1px,color:#4a235a
+    classDef ext fill:#ffffff,stroke:#566573,stroke-width:1px,color:#2c3e50
+
+    class USR,UI naoConfiavel
+    class BORDA borda
+    class API app
+    class AUTH,AUTZ,VAL appRS
+    class BD dados
+    class LOG audit
+    class PAG,IMG ext

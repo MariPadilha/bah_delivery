@@ -7,7 +7,9 @@ Esta etapa visa transformar os riscos e controles definidos na [Etapa 2 — Aval
 ## Sumário
 
 1. [Requisitos de Segurança](#1-requisitos-de-segurança)
-2. [Distribuição Integrante X Responsabilidades](#2-distribuição-integrante-x-responsabilidades)
+2. [Diagrama da Arquitetura Segura](#2-diagrama-da-arquitetura-segura)
+3. [Decisões de Arquitetura](#3-decisões-de-arquitetura)
+4. [Distribuição Integrante X Responsabilidades](#4-distribuição-integrante-x-responsabilidades)
 
 ---
 
@@ -50,7 +52,60 @@ em massa contra contas de clientes (*credential stuffing*). Sem mecanismos que d
 
 ---
 
-## 2. Distribuição Integrante X Responsabilidades
+## 2. Diagrama da Arquitetura Segura
+
+O diagrama apresenta os componentes do Bah Delivery organizados por **zonas de confiança**, e não por camadas funcionais. A escolha é deliberada: o que interessa a esta etapa não é como o sistema se divide para funcionar, e sim onde ele deixa de confiar em quem envia a requisição e passa a decidir por conta própria.
+
+Cada componente indica os controles do plano de tratamento da [Etapa 2](./etapa-2-riscos-nist.md#352-planos-por-risco) que nele se materializam, de modo que o diagrama não introduz medidas novas: ele mostra em que ponto da arquitetura as medidas já aprovadas passam a existir.
+
+![Diagrama da arquitetura segura do Bah Delivery](../diagramas/etapa-3/arquitetura-segura.png)
+
+**Arquivo-fonte:** [`diagramas/etapa-3/arquitetura-segura.mmd`](../diagramas/etapa-3/arquitetura-segura.mmd) — escrito em Mermaid e versionado junto da imagem. Para regerar o PNG após qualquer alteração do fonte:
+
+```bash
+npx @mermaid-js/mermaid-cli -i arquitetura-segura.mmd -o arquitetura-segura.png -w 1800 -b white
+```
+
+### 2.1. Zonas de Confiança
+
+| Zona | Componentes | Premissa adotada | Condição da travessia |
+|---|---|---|---|
+| **Não confiável** | Usuários e interface web | Nada que venha desta zona é confiável, inclusive o que é enviado por um usuário autenticado. A interface oculta as opções indisponíveis a cada perfil, mas essa ocultação é conveniência de uso, e não controle de acesso | Somente por HTTPS com TLS 1.2 ou superior (C89) |
+| **Borda** | CDN com WAF | O tráfego abusivo deve ser absorvido antes de alcançar o servidor da aplicação: volume é problema de infraestrutura, não da regra de negócio | Requisição já filtrada quanto a volume e origem (C53, C54) |
+| **Aplicação** | API REST, serviço de autenticação, regras de autorização, validação e acesso a dados | O servidor é a única autoridade sobre identidade e permissão. Tudo que não estiver explicitamente permitido é negado | Identidade resolvida no servidor e operação aprovada pelas regras de autorização (C66, C68) |
+| **Dados** | Banco de dados | Não é alcançável diretamente pela internet e recebe apenas comandos originados na zona de aplicação | Consulta parametrizada executada por conta de privilégio mínimo (C81, C83) |
+| **Auditoria** | Logs e monitoramento | O registro precisa sobreviver a quem tem poder sobre a aplicação, inclusive ao próprio administrador | Gravação unidirecional: a aplicação acrescenta e não altera nem exclui (C30, C31) |
+| **Serviços externos** | Provedor de pagamento e armazenamento de imagens com CDN | O dado que a plataforma não guarda é o dado que ela não pode vazar | Apenas a referência tokenizada do meio de pagamento e as imagens já validadas (C45, C109) |
+
+### 2.2. Realização dos Requisitos da Seção 1
+
+| Requisito | Risco de origem | Componente que o realiza | Controles posicionados no diagrama | Ameaça contida |
+|---|---|---|---|---|
+| [RS01](#rs01--proteção-contra-tentativas-automatizadas-de-autenticação) | R01 | Serviço de autenticação | C02, C03, C09 | S01 — tentativas automatizadas de autenticação com credenciais vazadas |
+| [RS02](#rs02--proteção-contra-injeção-de-comandos-sql) | R13 | Validação e acesso a dados | C81, C82, C84 | T05 e I06 — injeção de comandos e exposição por mensagem de erro |
+| [RS03](#rs03--controle-de-autorização-decidido-no-servidor) | R11 | Regras de autorização | C66, C67, C68 | E01, E02 e E03 — autorização decidida fora do servidor |
+
+### 2.3. Leitura do Diagrama
+
+Três propriedades da arquitetura ficam visíveis na figura e sustentam os requisitos acima.
+
+**A autorização é um ponto único, e não uma verificação espalhada.** Toda requisição atravessa a autenticação e, em seguida, as regras de autorização, antes de qualquer leitura ou escrita. A seta tracejada de retorno à API representa a negação por padrão de C66: quando a operação não consta das permissões do perfil, a requisição termina ali, com resposta genérica. Como o perfil é resolvido na conta armazenada (C68) e nunca lido da requisição (C67), as três variantes de E01, E02 e E03 são recusadas no mesmo lugar. É também o que separa a interface, que apenas oculta opções, do servidor, que decide.
+
+**A zona de dados não é alcançável a partir da internet.** Não existe seta que vá da zona não confiável ao banco de dados: o único caminho passa pela borda, pela API, pela autorização e pela validação. Assim, a consulta parametrizada de C81 deixa de ser uma boa prática pontual e passa a ser a única forma de a entrada do usuário alcançar o banco, o que é a condição para afirmar, como faz a estratégia *evitar* adotada em R13, que a exposição foi eliminada.
+
+**O registro de auditoria está fora do alcance de quem opera a aplicação.** Os três componentes da zona de aplicação escrevem no registro, mas o armazenamento está em zona própria e a gravação é unidirecional. Essa separação é o que impede a supressão de evidências descrita em RP04, e é a razão de R12 depender de C30 e não apenas de C31: registrar bem não basta se quem é auditado pode apagar o registro.
+
+As decisões de arquitetura que decorrem dessas propriedades, com o respectivo problema tratado, motivo, componente afetado e resultado esperado, são registradas na seção seguinte.
+
+---
+
+## 3. Decisões de Arquitetura
+
+> **Em preenchimento.** Esta seção registra três decisões de arquitetura. Cada decisão indica o problema ou risco tratado, a decisão tomada, o motivo, o componente afetado no diagrama da seção 2 e o resultado esperado.
+
+---
+
+## 4. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
 |------------|-------------------|
