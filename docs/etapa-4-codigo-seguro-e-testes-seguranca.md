@@ -107,9 +107,130 @@ O teste será considerado aprovado se a tentativa não modificar o comportamento
 
 ### 1.4. Implementação
 
+A implementação parte de uma separação que o requisito RS02 estabelece: o comando SQL é definido pela aplicação e o valor informado pelo usuário é apenas dado. Toda a proteção decorre de manter essas duas coisas separadas em todo o caminho percorrido pela entrada.
+
+O código está organizado em duas camadas, apresentadas nas subseções seguintes e correspondentes aos controles definidos no plano de tratamento da [Etapa 2](./etapa-2-riscos-nist.md#352-planos-por-risco):
+
+1. **Validação de entrada (C82):** recusa o termo que não corresponda ao formato esperado, antes de qualquer acesso ao banco de dados;
+2. **Consulta parametrizada (C81):** vincula o termo como parâmetro, de modo que ele seja recebido pelo banco como valor e nunca como parte da estrutura da consulta.
+
+A ordem importa menos do que a independência entre as duas. A validação é **defesa adicional, e não a proteção principal**, conforme registrado em C82: ela pode ser flexibilizada sem que o sistema fique exposto, porque a garantia de que a entrada não altera a consulta vem da vinculação de parâmetros. É por isso que as duas camadas são implementadas, e não apenas a primeira.
+
 ### 1.4.1 Validação de entrada
 
+A validação declara o que é aceito, e não o que é proibido. Uma lista de caracteres permitidos é preferível a uma lista de bloqueio porque não depende de prever todas as formas de escrever uma tentativa de injeção: o que não estiver descrito como aceitável é recusado.
+
+```python
+# 1. Vocabulario aceito no campo de busca (C82)
+
+import re
+import unicodedata
+
+TAMANHO_MAXIMO_DO_TERMO = 60
+
+# Letras, inclusive acentuadas, digitos, espaco e hifen.
+# Aspas, ponto e virgula, parenteses e marcadores de comentario ficam de fora.
+CARACTERES_PERMITIDOS = re.compile(r"^[0-9A-Za-zÀ-ÖØ-öø-ÿ \-]+$")
+
+
+class EntradaInvalida(Exception):
+    """Recusa da entrada antes de qualquer acesso ao banco de dados."""
+
+
+def validar_termo_de_busca(termo_recebido):
+    """C82 — valida o termo pelo conjunto de caracteres aceitos e pelo tamanho.
+
+    Defesa adicional, e nao a protecao principal: a garantia de que o termo
+    nao altera a estrutura da consulta vem de C81, na secao seguinte.
+    """
+    if not isinstance(termo_recebido, str):
+        raise EntradaInvalida("Termo de busca ausente.")
+
+    termo = unicodedata.normalize("NFC", termo_recebido).strip()
+
+    if not termo:
+        raise EntradaInvalida("Termo de busca vazio.")
+
+    if len(termo) > TAMANHO_MAXIMO_DO_TERMO:
+        raise EntradaInvalida("Termo de busca acima do tamanho permitido.")
+
+    if not CARACTERES_PERMITIDOS.match(termo):
+        raise EntradaInvalida("Termo de busca com caractere nao permitido.")
+
+    return termo
+```
+
 ### 1.4.2 Consulta parametrizada
+
+O comando SQL é declarado uma única vez, como constante, e o termo do usuário nunca é concatenado a ele. A entrada trafega exclusivamente na tupla de parâmetros, que o banco de dados interpreta como valor.
+
+```python
+# 2. Consulta com vinculacao de parametros (C81)
+
+LIMITE_DE_RESULTADOS = 20   # C55 — limite maximo de registros por resposta
+
+CONSULTA_DE_RESTAURANTES = """
+    SELECT id, nome, categoria, nota_media
+      FROM restaurantes
+     WHERE situacao = 'aprovado'
+       AND (nome LIKE ? OR categoria LIKE ?)
+     ORDER BY nota_media DESC
+     LIMIT ?
+"""
+
+
+def buscar_restaurantes(termo_recebido):
+    """Busca restaurantes pelo termo informado pelo cliente.
+
+    O comando e fixo no codigo. O termo viaja apenas na tupla de parametros,
+    de modo que o banco o recebe como valor, e nao como estrutura.
+    """
+    termo = validar_termo_de_busca(termo_recebido)      # C82
+    padrao = f"%{termo}%"                               # valor, nunca estrutura
+
+    with repositorio.conexao() as conexao:              # C83 — privilegio minimo
+        cursor = conexao.cursor()
+        cursor.execute(
+            CONSULTA_DE_RESTAURANTES,
+            (padrao, padrao, LIMITE_DE_RESULTADOS),
+        )
+        return cursor.fetchall()
+
+
+# 3. Ponto de entrada: mensagem generica ao cliente, detalhe apenas no registro (C84)
+
+def rota_busca_de_restaurantes(requisicao):
+    termo_recebido = requisicao.parametros.get("termo")
+
+    try:
+        restaurantes = buscar_restaurantes(termo_recebido)
+    except EntradaInvalida as recusa:
+        registrar_evento(
+            "busca_recusada",
+            motivo=str(recusa),
+            origem=requisicao.origem,
+        )
+        return resposta(400, {"erro": "Termo de busca invalido."})
+    except ErroDeBancoDeDados as falha:
+        # C84 — nem a mensagem do banco nem o comando executado chegam ao cliente.
+        # O registro interno alimenta a regra de alerta de C85.
+        registrar_erro("falha_na_busca", excecao=falha,
+                       consulta=CONSULTA_DE_RESTAURANTES)
+        return resposta(500, {"erro": "Nao foi possivel concluir a busca."})
+
+    return resposta(200, {"restaurantes": restaurantes})
+```
+
+**Observações:**
+
+- O termo é recusado antes de a conexão com o banco ser aberta, de modo que uma tentativa de injeção com aspas ou ponto e vírgula não chega a produzir consulta alguma;
+- Ainda que a lista de caracteres permitidos fosse ampliada, a estrutura da consulta permaneceria intacta, porque `cursor.execute` recebe o comando e os valores separadamente. É essa independência que sustenta a estratégia *evitar* adotada para R13;
+- A lista de permitidos **não é suficiente sozinha**, e isso é deliberado: um termo como `1 UNION SELECT senha FROM usuarios` é composto apenas de letras, dígitos e espaços, e portanto atravessa a validação. Ele não produz efeito porque chega ao banco como valor de uma cláusula `LIKE`, e não como comando. O exemplo mostra por que C82 é registrado no plano como defesa adicional: quem impede a injeção é C81;
+- A validação também produz recusas legítimas. Um estabelecimento chamado `Pão & Cia` seria rejeitado, porque `&` não consta do conjunto aceito. O ajuste é uma decisão de produto sobre quais caracteres um nome pode conter, e pode ser feito sem revisar a segurança da consulta;
+- O caractere `%` do padrão de busca é acrescentado pela aplicação, e não aceito do usuário, para que o cliente não controle o alcance da correspondência;
+- **TS01** exercita o caminho completo: o termo `Pizza` é aceito pela validação e vinculado como parâmetro, e a pesquisa continua funcionando normalmente. **TS02** é recusado na primeira camada, e a segunda permanece verificável de forma independente, por qualquer termo aceito pela lista de permitidos;
+- A mensagem devolvida ao cliente é sempre genérica, tanto na recusa quanto na falha, o que trata a ameaça I06 sem revelar a estrutura da consulta;
+- C83 é pressuposto pela implementação, mas não se realiza no código: a conta de banco utilizada pela aplicação é configurada na infraestrutura, sem permissão de alteração de estrutura, conforme o componente correspondente do diagrama da [Etapa 3](./etapa-3-arquitetura-segura.md#2-diagrama-da-arquitetura-segura).
 
 ---
 
