@@ -101,7 +101,53 @@ As decisões de arquitetura que decorrem dessas propriedades, com o respectivo p
 
 ## 3. Decisões de Arquitetura
 
-> **Em preenchimento.** Esta seção registra três decisões de arquitetura. Cada decisão indica o problema ou risco tratado, a decisão tomada, o motivo, o componente afetado no diagrama da seção 2 e o resultado esperado.
+As decisões abaixo registram como o Bah Delivery seria organizado para atender aos requisitos desta etapa. Cada uma indica o risco tratado, a decisão, o motivo, o componente afetado no diagrama da seção 2 e o resultado esperado, e referencia os controles definidos no [plano de tratamento da Etapa 2](./etapa-2-riscos-nist.md#352-planos-por-risco), de modo que a arquitetura não introduza medidas novas sem relação com o plano já aprovado.
+
+### 3.1. Resumo
+
+| ID | Decisão | Risco tratado | Requisito | Controles relacionados |
+|---|---|---|---|---|
+| DA01 | Concentrar autenticação, segundo fator e limitação de tentativas em um único serviço de autenticação, com limitação progressiva em vez de bloqueio permanente | R01 (e R10) | RS01 | C01, C02, C03, C06 |
+| DA02 | Restringir todo acesso ao banco a uma camada de acesso a dados que expõe apenas consultas parametrizadas, com a proibição de concatenação imposta pelo pipeline | R13 (e I06) | RS02 | C79, C80, C81, C82, C83, C84 |
+| DA03 | [A definir pelo integrante 6, junto com a consolidação da etapa] | [RXX] | RS03 | [CXX] |
+
+---
+
+### 3.2. DA01 - Autenticação, segundo fator e limitação de tentativas em um serviço único
+
+**Problema ou risco tratado.** R01, classificado como crítico, derivado da ameaça S01: um atacante utiliza credenciais obtidas em vazamentos de outros serviços para tentar autenticar-se em massa contra contas de clientes. O requisito RS01 exige limitar tentativas repetidas e aplicar verificação adicional de identidade quando o acesso for considerado suspeito.
+
+**Decisão tomada.** A validação de credenciais, a emissão de sessão, o segundo fator e a contagem de tentativas ficam concentrados em um serviço de autenticação próprio, posicionado atrás da borda. Nenhum outro componente valida credenciais nem emite sessão. A limitação de tentativas é progressiva, aplicada simultaneamente por conta e por origem da requisição, com atraso incremental e desafio adicional após o limiar, sem bloqueio permanente acionado apenas pela contagem por conta. O segundo fator é obrigatório para os perfis administrador e restaurante e exigido do cliente quando o acesso parte de dispositivo não reconhecido.
+
+**Motivo.** Três razões sustentam a decisão:
+
+1. Se cada rota que consome credenciais mantivesse sua própria contagem, o limiar seria contornável pela simples alternância entre rotas, e a limitação exigida por RS01 deixaria de ser verificável em um ponto único.
+2. O bloqueio permanente por contagem de falhas converteria o controle de R01 em vetor da condição D06, na qual o mecanismo de proteção passa a ser usado para indisponibilizar contas alheias. Essa é a ressalva já registrada em C03 e reaproveitada no tratamento de R10, e ela é o que justifica a escolha por atraso e desafio em lugar de bloqueio.
+3. Exigir o segundo fator do cliente apenas em dispositivo novo mantém o atrito em nível aceitável para o perfil de maior volume, decisão que cabe ao Produto conforme a política de C01, enquanto os perfis administrador e restaurante, cujo comprometimento tem consequência maior, não recebem essa exceção.
+
+**Componente afetado.** Serviço de autenticação, que passa a ser o único detentor da lógica de credenciais e do segundo fator; borda, responsável pela contagem por origem antes que a requisição alcance a aplicação; interface web, que deixa de decidir sobre o acesso e apenas apresenta o desafio devolvido pelo serviço; e o armazenamento dos dispositivos reconhecidos por cliente, necessário para distinguir o acesso habitual do novo.
+
+**Resultado esperado.** Tentativas sucessivas contra a mesma conta passam a sofrer atraso crescente e a exigir desafio, tornando o custo de uma campanha automatizada desproporcional ao ganho, e o acesso a partir de dispositivo não reconhecido não se completa apenas com usuário e senha. O critério de verificação de RS01 é observável em um só componente, e a conta permanece acessível a partir da origem legítima mesmo durante uma tentativa em curso, o que preserva a decisão tomada em R10.
+
+---
+
+### 3.3. DA02 - Acesso ao banco restrito a uma camada com consultas parametrizadas
+
+**Problema ou risco tratado.** R13, classificado como crítico e o único do registro com estratégia Evitar, derivado das ameaças T05 (injeção de comandos SQL nos campos de busca de restaurantes e produtos) e I06 (exposição de informações internas por mensagens de erro detalhadas). O requisito RS02 exige o uso de consultas parametrizadas e a validação das entradas conforme o formato esperado.
+
+**Decisão tomada.** Nenhum componente da aplicação monta comandos SQL por concatenação. O acesso ao banco de dados fica restrito a uma camada de acesso a dados que expõe exclusivamente consultas com vinculação de parâmetros, e a proibição de concatenar entrada do usuário é imposta por regra de análise estática no pipeline, que bloqueia a integração do código que a violar. A aplicação conecta ao banco com conta de privilégio mínimo, sem permissão de alteração de estrutura nem de acesso a tabelas fora do seu escopo, e as mensagens de erro devolvidas ao cliente são genéricas, ficando o rastreamento da exceção e a consulta executada apenas no registro interno.
+
+**Motivo.** A validação de entrada, isoladamente, funciona como uma lista de bloqueio implícita e falha diante de codificações alternativas do mesmo conteúdo. A vinculação de parâmetros resolve o problema em outro nível, ao separar a estrutura da consulta do dado fornecido, e por isso é adotada como proteção principal (C81), com a validação por lista de caracteres permitidos mantida como defesa adicional (C82), e não como substituta. Concentrar as consultas em uma camada única torna o inventário de C80 viável e mantém finito o conjunto de pontos a auditar. A regra no pipeline é o que sustenta a estratégia Evitar ao longo do tempo: sem ela, código escrito depois da correção reintroduziria a condição, e a eliminação do risco deixaria de ser verdadeira. O privilégio mínimo e a mensagem genérica não impedem a injeção, mas limitam o que uma falha remanescente alcançaria e removem a realimentação que torna a exploração barata, que é exatamente a condição descrita em I06.
+
+**Componente afetado.** Camada de acesso a dados da API REST, que passa a ser o único caminho até o banco; pipeline de integração, que recebe a regra de análise estática; banco de dados, cuja conta de aplicação tem os privilégios reduzidos; e o tratamento de erros da API, que separa a resposta ao cliente do detalhe registrado internamente.
+
+**Resultado esperado.** Entradas maliciosas nos campos de busca passam a ser tratadas como dado da consulta, sem alterar sua estrutura, e entradas fora do formato esperado são recusadas antes do processamento, que são os dois critérios de verificação de RS02. A ausência de ocorrências em nova execução da análise estática, prevista como evidência de C81, torna possível afirmar que a condição de origem foi removida, e não apenas mitigada, o que é o que a estratégia Evitar exige.
+
+---
+
+### 3.4. DA03
+
+> **Em preenchimento.** Decisão a cargo do integrante 6, junto com a consolidação da etapa. Segue o mesmo formato das anteriores: problema ou risco tratado, decisão tomada, motivo, componente afetado e resultado esperado, com a linha correspondente do resumo em 3.1 preenchida.
 
 ---
 
