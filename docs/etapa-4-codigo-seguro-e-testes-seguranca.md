@@ -9,7 +9,7 @@ Para cada prática selecionada, os testes de segurança são definidos **antes d
 ## Sumário
 
 1. [Prática 1 — Consultas Parametrizadas e Validação de Entrada](#1-prática-1--consultas-parametrizadas-e-validação-de-entrada)
-2. [Prática 2 — *a definir*](#2-prática-2--autorização no servidor)
+2. [Prática 2 — Autorização no servidor](#2-prática-2--autorização-no-servidor)
 3. [Rastreabilidade das Práticas Definidas](#3-rastreabilidade-das-práticas-definidas)
 4. [Considerações Finais](#4-considerações-finais)
 5. [Distribuição Integrante X Responsabilidades](#5-distribuição-integrante-x-responsabilidades)
