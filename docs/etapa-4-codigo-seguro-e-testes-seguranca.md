@@ -236,9 +236,43 @@ def rota_busca_de_restaurantes(requisicao):
 
 ### 1.5 Resultado esperado da prática
 
+O resultado da prática é verificável pelos dois critérios que RS02 estabelece: entradas maliciosas não alteram a consulta executada, e entradas fora do formato esperado são recusadas antes do processamento. Cada um é observado por um teste distinto, e é essa separação que permite afirmar que a proteção não depende de uma única camada.
+
+| Situação | Comportamento esperado | Camada que o produz | Teste que o evidencia |
+|---|---|---|---|
+| Termo legítimo (`Pizza`) | A pesquisa continua funcionando e devolve os restaurantes correspondentes, com o termo vinculado como valor da cláusula `LIKE` | C81 | TS01 |
+| Termo com aspas, ponto e vírgula ou marcador de comentário | Recusa com resposta genérica, antes de a conexão com o banco ser aberta, e registro do evento `busca_recusada` | C82 | TS02 |
+| Termo aceito pela validação, mas com intenção de injeção (`1 UNION SELECT senha FROM usuarios`) | Nenhum efeito sobre a estrutura da consulta: o valor chega ao banco como dado da cláusula `LIKE` e não retorna registro algum | C81 | TS01, por qualquer termo aceito |
+| Falha do banco durante a execução | Resposta genérica ao cliente, com a exceção e a consulta registradas apenas internamente | C84 | Observação da §1.4 |
+
+A terceira linha é a que sustenta a estratégia *evitar* adotada para R13. Se o resultado dependesse apenas da validação, ele valeria somente para o conjunto de caracteres hoje recusado, e qualquer flexibilização futura da lista, como a necessária para aceitar um nome como `Pão & Cia`, reabriria a exposição. Como o comando é declarado uma única vez e o termo trafega na tupla de parâmetros, a estrutura permanece intacta independentemente do que a validação aceite. É por isso que C82 é registrado no plano de tratamento como defesa adicional, e não como a proteção principal.
+
+Quanto às ameaças de origem, T05 deixa de dispor do caminho que a torna explorável, porque não existe ponto em que o termo do usuário componha a estrutura do comando, e I06 perde a realimentação de que a exploração depende, já que nem a mensagem do banco nem a consulta executada chegam ao cliente.
+
+Três limites permanecem, e registrá-los faz parte do resultado:
+
+1. **A prática cobre a busca de restaurantes, e não o restante da aplicação.** A afirmação de que R13 foi eliminado só se estende aos demais pontos de acesso ao banco depois que o inventário de consultas dinâmicas previsto em C80 for concluído e cada ponto for convertido ao mesmo padrão.
+2. **A eliminação não se sustenta sozinha ao longo do tempo.** Código escrito depois desta correção pode reintroduzir a concatenação. Quem preserva o resultado é a regra de análise estática decidida em [DA02](./etapa-3-arquitetura-segura.md#33-da02---acesso-ao-banco-restrito-a-uma-camada-com-consultas-parametrizadas), a ser posicionada no pipeline tratado na Etapa 7, cuja ausência de ocorrências é a evidência prevista para C81.
+3. **C83 é pressuposto pela implementação, mas não se realiza no código.** O privilégio mínimo da conta de banco é configuração de infraestrutura, e é o que limita o alcance de uma falha remanescente.
+
+Como o Bah Delivery não está implementado, o resultado descrito nesta seção é o comportamento esperado da prática, e não redução de risco já obtida. Conforme a estimativa de risco residual da [Etapa 2](./etapa-2-riscos-nist.md#37-risco-residual-esperado), a redução efetiva só pode ser afirmada após implementação, execução dos testes e obtenção das evidências.
+
 ---
 
 ### 1.6 Referências OWASP
+
+| Referência | Trecho utilizado | Onde se materializa nesta prática |
+|---|---|---|
+| OWASP Top 10 2021, [A03:2021 Injection](https://owasp.org/Top10/A03_2021-Injection/) | A categoria em que a ameaça T05 se enquadra, e a orientação de que a defesa preferencial é manter os dados separados dos comandos, e não filtrar a entrada | Justifica a escolha da prática e a hierarquia adotada entre C81 e C82 |
+| [SQL Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html) | *Defense Option 1: Prepared Statements (with Parameterized Queries)*, apresentada como a defesa principal, e a ressalva de que listas de permitidos são defesa adicional | §1.4.2, na declaração da consulta como constante e na vinculação do termo (C81) |
+| [Query Parameterization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Query_Parameterization_Cheat_Sheet.html) | Exemplos de vinculação de parâmetros e a recomendação de que o valor nunca componha o texto do comando | Uso de `cursor.execute` com a tupla `(padrao, padrao, LIMITE_DE_RESULTADOS)`, sem interpolação no SQL |
+| [Input Validation Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html) | Validação por lista de permitidos, com verificação de tipo, tamanho e formato, e a advertência de que a validação não substitui a parametrização | §1.4.1, em `validar_termo_de_busca` (C82) |
+| [Error Handling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Error_Handling_Cheat_Sheet.html) | Mensagem genérica ao usuário, com o detalhe da exceção mantido apenas no registro interno | `rota_busca_de_restaurantes`, no tratamento de `ErroDeBancoDeDados` (C84), atendendo também a I06 |
+| OWASP ASVS 4.0.3, V5.3.4 | "Verify that data selection or database queries (e.g. SQL, HQL, ORM, NoSQL) use parameterized queries, ORMs, entity frameworks, or are otherwise protected from database injection attacks" | Requisito verificável correspondente a C81, e o critério que TS02 exercita |
+| OWASP ASVS 4.0.3, V5.1.3 e V5.1.4 | Validação por lista de permitidos e verificação de caracteres aceitos, tamanho e padrão | `CARACTERES_PERMITIDOS` e `TAMANHO_MAXIMO_DO_TERMO`, em C82 |
+| OWASP ASVS 4.0.3, V7.4.1 | "Verify that a generic message is shown when an unexpected or security sensitive error occurs" | Respostas 400 e 500 da rota de busca, sem revelar a estrutura da consulta |
+
+A vulnerabilidade catalogada correspondente, CWE-89, está registrada na [Etapa 3](./etapa-3-arquitetura-segura.md#12-vulnerabilidade-catalogada-correspondente) e é a mesma referenciada por V5.3.4 do ASVS, o que mantém a cadeia entre a ameaça T05, o risco R13, o requisito RS02 e a implementação desta seção.
 
 ---
 
