@@ -94,7 +94,63 @@ Este é o momento que fecha o ciclo, e não uma etapa final. O que a operação 
 
 ## 4. Roteiro do vídeo final
 
-> **Em preenchimento.** Integrante 6.
+O vídeo final não apresenta um sistema em funcionamento, porque o Bah Delivery não foi implementado — o que existe para apresentar é a análise, e é ela que o roteiro expõe. Filmar uma demonstração inexistente seria contradizer, na própria gravação, a premissa registrada desde a Etapa 1: o trabalho avalia a segurança de um projeto, não o comportamento de um software. O roteiro segue, por isso, o mesmo pipeline definido na seção 1, na mesma ordem em que os momentos aparecem ali, porque essa ordem já expressa a dependência entre eles — não se explica a análise de código antes de existir código a analisar, nem o monitoramento antes de existir o que monitorar.
+
+Cada bloco é narrado por quem escreveu o conteúdo correspondente, e essa escolha não é protocolar. Quem redigiu uma seção sabe qual foi a dúvida por trás de cada decisão registrada nela — por que a condição de continuidade do momento 5 é a triagem, e não a ausência de achados; por que o A02 é o achado de menor confiança da Etapa 5 — e consegue explicar isso sem reler o texto em voz alta. Um narrador único, apresentando o trabalho de outra pessoa, reproduziria a redação sem o raciocínio, e o vídeo perderia exatamente o que o distingue do documento escrito. A exceção é a abertura e o encerramento, que não pertencem a nenhum momento isolado do pipeline e cabem a quem amarra o conjunto.
+
+O apoio visual de cada bloco vem exclusivamente do que já foi produzido nas etapas anteriores — diagramas, tabelas e capturas de tela já existentes nos documentos —, pelo mesmo motivo que impede a demonstração ao vivo: gravar qualquer tela do Bah Delivery sugeriria a existência de um sistema que o trabalho, desde o início, declara não implementado.
+
+### 4.1. Estrutura por blocos
+
+| Bloco | Conteúdo | Apresenta | Apoio visual |
+|---|---|---|---|
+| Abertura | O que é o Bah Delivery, o que o trabalho analisa e a lógica do pipeline | Emanuel Ferreira | Sumário do README |
+| Momentos 1 e 2 — Planejamento e arquitetura | Casos de abuso e ameaças STRIDE da Etapa 1; requisitos e decisões de arquitetura da Etapa 3 | Arthur Medeiros | Diagramas de `diagramas/etapa-1/` e `diagramas/etapa-3/` |
+| Momentos 3 e 4 — Implementação e testes | Práticas de código seguro e testes definidos antes da implementação, na Etapa 4 | Mariana Padilha | Trechos de código/pseudocódigo da Etapa 4 |
+| Momento 5 — Análise de código e dependências | Regras estáticas de C79, inventário de dependências, busca por segredos | Guilherme Mundt | Tabela da seção 2.5 |
+| Momento 6 — Teste dinâmico e a sessão do ZAP | A varredura da Etapa 5 e as três correções que o pipeline aplica a ela | Guilherme Mundt | Capturas de `docs/evidencias/etapa-5/` |
+| Achados A01 a A03 e suas limitações | O que cada achado do ZAP permite afirmar e o que não permite | Arthur Medeiros, Lívia Barbosa, Guilherme Mundt, Emanuel Ferreira | Tabela da seção 5 da Etapa 5 |
+| Momentos 7 e 8 — Implantação e monitoramento | Verificação de ambiente; eventos e regras de detecção da Etapa 6 | Matheus Ciocca | Tabelas das seções 3.3 e 4 da Etapa 6 |
+| Condições que impedem a continuidade | As condições que barram o pipeline antes da implantação | Lívia Barbosa | Seção 3 deste roteiro |
+| Encerramento | Por que o momento 8 fecha um ciclo, e não uma etapa final | Emanuel Ferreira | — |
+
+### 4.2. Abertura
+
+A abertura tem uma única tarefa: situar quem assiste antes de qualquer detalhe técnico aparecer. Ela define o Bah Delivery pela descrição já usada no README — uma plataforma de pedidos e entregas com quatro perfis de usuário — e, na sequência imediata, declara a condição que rege todo o restante do vídeo: o sistema não foi implementado, e o que o grupo produziu é a análise de sua segurança, do levantamento de ameaças ao desenho do pipeline de desenvolvimento. Essa frase precede qualquer outra, porque sem ela um espectador que entrasse no vídeo a partir do momento 6, por exemplo, poderia interpretar as capturas do ZAP como evidência colhida do próprio Bah Delivery, quando na verdade pertencem ao Juice Shop, usado como alvo de treinamento na Etapa 5.
+
+A abertura também expõe a lógica do pipeline antes de percorrê-lo bloco a bloco: cada momento reaproveita o que o anterior produziu, do mesmo modo como este roteiro reaproveita o texto já escrito nas seis etapas anteriores. É essa mesma ideia — nenhuma etapa se sustenta isolada da que veio antes — que o encerramento retoma ao final, fechando o vídeo com a mesma lógica com que ele abre.
+
+### 4.3. Momentos 1 e 2 — Planejamento e arquitetura
+
+Este bloco recupera o ponto de partida de todo o trabalho: os ativos e casos de abuso da Etapa 1, a modelagem STRIDE que os transforma em ameaças identificadas por código, e as decisões de arquitetura da Etapa 3 que respondem a parte delas — em particular DA02 e DA03, que concentram acesso a dados e autorização em pontos únicos, e que são citadas repetidamente nas etapas seguintes como o que torna certas regras de detecção e de análise estática possíveis de escrever. A apresentação usa o diagrama de contexto e o diagrama de casos de uso da Etapa 1, e o diagrama de arquitetura segura da Etapa 3, porque esses três diagramas comunicam em poucos segundos uma estrutura que o texto correspondente leva páginas para descrever, e é isso que a passagem para vídeo deve aproveitar.
+
+### 4.4. Momentos 3 e 4 — Implementação e testes
+
+Aqui o vídeo desce da arquitetura para o código: as duas práticas de código seguro definidas na Etapa 4 — consultas parametrizadas com validação de entrada, e autorização resolvida no servidor a partir do papel armazenado na conta — e os testes escritos antes da implementação para cada uma delas. O ponto que este bloco precisa deixar visível é a ordem: os testes foram definidos primeiro, e o pseudocódigo depois, o que é o próprio sentido de "testes de segurança" no título da etapa. Mostrar o trecho de pseudocódigo ao lado do teste que ele satisfaz é mais direto do que descrever os dois separadamente, e evita que o vídeo pareça apresentar a implementação como se fosse anterior à decisão de o que testar.
+
+### 4.5. Momento 5 — Análise de código e dependências
+
+Este bloco explica por que a análise estática é bloqueante e não apenas informativa: C79 exige que nenhuma consulta concatenando entrada do usuário seja integrada, e as decisões DA02 e DA03 do momento anterior são o que torna possível escrever regras equivalentes para acesso ao banco fora da camada de dados e para autorização fora do ponto único. A apresentação também cobre o inventário de dependências e a busca por segredos no histórico do repositório, e fecha no mesmo ponto em que a seção 2.5 fecha: a condição de continuidade não é a ausência de achados, é o achado de severidade alta sem triagem e sem responsável — distinção que evita que o time simplesmente desligue a regra que mais incomoda.
+
+### 4.6. Momento 6 — Teste dinâmico e a sessão do ZAP
+
+Este é o bloco com maior apoio visual do vídeo, porque é o único momento do pipeline com execução já registrada: a sessão do OWASP ZAP contra o Juice Shop, documentada na Etapa 5. A apresentação percorre as três correções que o pipeline aplica ao que aquela sessão expôs — escopo declarado e restrito ao alvo, porque o spider da Etapa 5 seguiu links externos sem essa restrição; sessão autenticada em todos os perfis, porque a varredura original cobriu apenas a superfície pública; e triagem antes da decisão, porque dois dos três achados exigiam confirmação antes de contar como vulnerabilidade. As capturas de `docs/evidencias/etapa-5/` ilustram diretamente esse último ponto, e o bloco seguinte aprofunda cada uma delas.
+
+### 4.7. Achados A01 a A03 e suas limitações
+
+Cada achado é apresentado por quem o analisou na Etapa 5, e a ordem segue a tabela da seção 5 daquele documento: A01, o redirecionamento aberto cuja evidência não prova destino arbitrário; A02, o alerta de menor confiança, levantado por um scanner que não enxerga proteção fora do HTML; e A03, tecnicamente correto mas capturado fora do escopo do alvo. O fio condutor deste bloco não é o achado em si, é o que ele ensina sobre ler resultado de ferramenta automatizada: nenhum dos três se sustenta como vulnerabilidade confirmada sem a verificação adicional que a própria Etapa 5 descreve, e é essa mesma leitura crítica que justifica, no momento 6, a exigência de triagem antes de qualquer decisão do pipeline.
+
+### 4.8. Momentos 7 e 8 — Implantação e monitoramento
+
+O bloco final do pipeline cobre dois momentos que não dependem do código, e sim do ambiente e da operação. A implantação verifica configuração — TLS, privilégio mínimo do banco, ausência de segredos no artefato — porque um artefato aprovado em todos os momentos anteriores ainda pode ser publicado num ambiente que não atende a nenhuma dessas condições. O monitoramento retoma os treze eventos e as três regras de detecção da Etapa 6, com ênfase na verificação diária da cadeia de resumos: sem ela, a ausência de alertas seria indistinguível de um sistema que parou de observar a si mesmo. As tabelas de eventos e de regras da Etapa 6 sustentam a apresentação sem necessidade de reconstruir os exemplos em tela.
+
+### 4.9. Condições que impedem a continuidade
+
+Este bloco expõe as condições definidas na seção 3 deste roteiro como o mecanismo que impede um pipeline aprovado por engano: cada momento anterior já declara sua própria condição de continuidade, e este bloco reúne o que, entre elas, é suficiente para travar a promoção do artefato — não uma lista nova, e sim a leitura conjunta do que já foi apresentado em cada momento.
+
+### 4.10. Encerramento
+
+O encerramento não resume o que foi dito nos blocos anteriores, porque um resumo apenas repetiria em voz mais rápida o que o espectador acabou de ouvir. Em vez disso, ele aponta para fora do vídeo: explica por que o momento 8 fecha um ciclo, e não uma etapa final. Um alerta recorrente, gerado pelas regras da Etapa 6, indica risco subavaliado no registro da Etapa 2. Um incidente sem evento correspondente indica lacuna na relação de eventos da própria Etapa 6. É esse retorno — da operação de volta ao planejamento — que a seção 2.8 já descreve como o que impede o monitoramento de virar coleta de registro sem consequência, e é com essa mesma ideia que o vídeo termina: a análise apresentada não se conclui na implantação, ela se realimenta a cada momento em que a operação encontra algo que o planejamento não previu.
 
 ---
 
