@@ -139,8 +139,25 @@ Este é o momento que fecha o ciclo, e não uma etapa final. O que a operação 
 ---
 
 ## 3. Condições que impedem a continuidade
+A lista reúne, em um único lugar, o que a coluna "Condição para continuar" da seção 1 já declara momento a momento. Enquanto uma delas não for atendida, o artefato não avança. O momento indicado é onde a condição é verificada, e a frase seguinte diz por que ela trava o pipeline.
 
-> **Em preenchimento.** Integrante 3, com pelo menos três condições.
+1. Risco crítico sem estratégia de tratamento definida ou ameaça relevante sem controle ou decisão associada (momento 1). Avançar sem essa definição transfere para a implementação uma decisão que deveria ter sido tomada antes de existir código.
+2. Requisito de segurança sem decisão arquitetural ou controle correspondente, ou decisão não registrada antes da implementação (momento 2). Sem a decisão registrada, os momentos seguintes não têm referência objetiva do comportamento que deveriam verificar.
+3. Entrada do usuário compondo a estrutura de uma consulta (momentos 3 e 5). É a condição que origina o R13, e a verificação é a varredura da análise estática de **C79**, que cobre todo o código e não uma amostra dele.
+4. Decisão de autorização fora do ponto único de DA03 ou perfil obtido do cliente ou do token em vez da conta armazenada (**C68**) (momentos 3 e 5). Decisão tomada fora do ponto único escapa da negação por padrão e dos testes que a exercitam.
+5. Reprovação de TS01, TS02, TS03 ou TS04 (momento 4). A falha devolve o código à implementação, em vez de permitir que uma propriedade de segurança não atendida avance.
+6. Critério de RS03 sem teste automatizado próprio. Descarte do campo `perfil` enviado pelo cliente (**C67**) e recusa de token forjado, expirado ou com algoritmo alterado (**C68**) (momento 4). A leitura do código não substitui a evidência produzida pela execução do caso.
+7. Segredo no código, no histórico do repositório ou no artefato (momentos 5 e 7). O commit seguinte não corrige, porque o segredo permanece recuperável no histórico: o que se aplica é a revogação de **C49**, que é resposta a incidente.
+8. Achado de severidade alta sem triagem registrada e sem responsável identificado (momentos 5 e 6). Achado de ferramenta é indício, e exigir "nenhum achado" levaria a desligar a regra que incomoda em vez de decidir sobre ela.
+9. Achado confirmado de severidade alta ou média em aberto (momento 6). Depois da triagem, ele deixa de ser indício e passa a ser vulnerabilidade conhecida no artefato que seria promovido.
+10. Cobertura não declarada no teste dinâmico, ou perfil sem sessão autenticada exercitada (momento 6). Sem sessão válida de cada perfil, a ausência de achado de autorização significa apenas que ela não foi exercitada.
+11. Configuração pressuposta pelos controles não conferida, TLS 1.2 ou superior (**C89**), privilégio mínimo da conta de banco (**C83**), auditoria em modo apenas de acréscimo (**C30**) ou reversão não exercitada (momento 7). Um artefato aprovado em todos os momentos anteriores ainda pode ser publicado em ambiente que não atende a nenhuma dessas condições.
+12. Geração do registro de auditoria inativa, ou lacuna na cadeia de resumos (**C33**) (momento 8). Com o registro rompido, o silêncio das demais regras não significa ausência de incidente.
+13. Alerta crítico em aberto sem tratamento ou regra ativa sem responsável e resposta inicial definidos (momento 8). Alerta sem destinatário produz registro, e não detecção.
+
+Duas observações completam a lista:
+- As condições 1 a 11 travam a promoção do artefato. As condições 12 e 13 pertencem à operação e travam a promoção seguinte.
+- Qualquer alteração no código reexecuta os momentos 4 a 6, porque a evidência produzida ali diz respeito ao artefato submetido, e não ao projeto em geral.
 
 ---
 
