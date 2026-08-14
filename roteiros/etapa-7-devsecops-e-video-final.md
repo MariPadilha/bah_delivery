@@ -18,8 +18,8 @@ Este roteiro descreve um pipeline em que a segurança acompanha o ciclo de desen
 
 | # | Momento | Atividade de segurança | Evidência produzida | Condição para continuar |
 |---|---|---|---|---|
-| 1 | Planejamento e análise de ameaças | *Em preenchimento, integrante 1* | | |
-| 2 | Requisitos e decisões de arquitetura | *Em preenchimento, integrante 1* | | |
+| 1 | Planejamento e análise de ameaças | Levantamento dos ativos e casos de abuso da Etapa 1, modelagem das ameaças com STRIDE e priorização dos riscos definidos na Etapa 2. O objetivo é identificar antecipadamente quais ameaças precisam ser tratadas e quais controles devem ser previstos antes da implementação | Registro dos ativos, casos de abuso e ameaças identificadas na Etapa 1, além da matriz de riscos e do plano de tratamento da Etapa 2 | Nenhum risco crítico pode permanecer sem estratégia de tratamento definida, e nenhuma ameaça relevante pode seguir sem controle ou decisão associada |
+| 2 | Requisitos e decisões de arquitetura | Transformação dos riscos priorizados em requisitos de segurança e decisões de arquitetura. Os requisitos da Etapa 3 definem o comportamento esperado de segurança, enquanto as decisões arquiteturais determinam onde os controles serão aplicados, incluindo autenticação, autorização, acesso a dados e auditoria | Requisitos de segurança, vulnerabilidades catalogadas, decisões DA01 a DA03 e diagrama de arquitetura segura da Etapa 3 | Nenhum requisito de segurança associado a risco relevante pode seguir sem decisão arquitetural ou controle correspondente, e as decisões precisam estar registradas antes da implementação |
 | 3 | Implementação segura | *Em preenchimento, integrante 2* | | |
 | 4 | Testes automatizados | *Em preenchimento, integrante 2* | | |
 | 5 | Análise de código e dependências | Execução das regras de análise estática exigidas por **C79** sobre o código submetido, inventário das dependências externas com verificação de vulnerabilidade conhecida, e busca por segredos no código e no histórico do repositório (**C46**) | Relatório datado da análise estática, com a relação das ocorrências e o responsável pela correção de cada uma (**C80**); inventário das dependências com a versão em uso e as vulnerabilidades conhecidas; resultado da busca por segredos; registro da triagem de cada achado, com o desfecho | Nenhuma ocorrência de concatenação de entrada do usuário em consulta e nenhuma decisão de autorização fora do ponto único previsto em DA03; nenhum segredo encontrado; nenhum achado de severidade alta sem triagem registrada e responsável identificado |
@@ -31,8 +31,28 @@ Este roteiro descreve um pipeline em que a segurança acompanha o ciclo de desen
 
 ## 2. Detalhamento dos momentos
 
-> **Em preenchimento.** Momentos 1 a 4, a cargo dos integrantes 1 e 2.
+> > **Em preenchimento.** Momentos 3 e 4, a cargo do integrante 2.
+### 2.1. Planejamento e análise de ameaças
 
+O primeiro momento do pipeline ocorre antes de qualquer implementação. Seu objetivo é identificar o que precisa ser protegido, quais comportamentos indevidos precisam ser considerados e quais riscos podem comprometer o sistema. No Bah Delivery, esse trabalho parte dos ativos, dos casos de abuso e da modelagem STRIDE registrados na Etapa 1.
+
+A modelagem de ameaças transforma situações genéricas de segurança em cenários concretos relacionados à plataforma. Dessa forma, autenticação, autorização, integridade dos pedidos, proteção de dados e disponibilidade deixam de ser apenas preocupações abstratas e passam a estar associadas a ameaças identificadas e rastreáveis.
+
+Essas ameaças alimentam a análise de riscos da Etapa 2. Nela, os riscos são priorizados e recebem estratégias de tratamento e controles correspondentes. O planejamento, portanto, não termina na identificação da ameaça: ele precisa produzir uma decisão sobre como cada risco relevante será tratado.
+
+A condição de continuidade deste momento é que nenhum risco crítico permaneça sem estratégia de tratamento definida e que as ameaças relevantes possuam controle ou decisão correspondente. Permitir que o pipeline avance sem essa definição significaria transferir para a implementação uma decisão que deveria ter sido tomada antes de existir código.
+
+### 2.2. Requisitos e decisões de arquitetura
+
+O segundo momento transforma o resultado do planejamento em propriedades verificáveis do sistema. Os riscos e controles definidos anteriormente são convertidos em requisitos de segurança e decisões de arquitetura, registrados na Etapa 3.
+
+Os requisitos de segurança descrevem o comportamento que o Bah Delivery deve apresentar diante das ameaças identificadas. As decisões de arquitetura definem onde esses comportamentos serão garantidos e procuram concentrar controles críticos em pontos verificáveis do sistema.
+
+Entre as decisões registradas na Etapa 3, destacam-se as que centralizam o acesso aos dados e a autorização. Essa concentração permite que as etapas seguintes verifiquem se o sistema realmente respeita as decisões tomadas: testes podem exercitar o ponto de autorização, e regras de análise estática podem identificar código que tente contornar o acesso definido pela arquitetura.
+
+A arquitetura funciona, portanto, como ligação entre a análise de risco e a implementação. Um risco identificado no planejamento precisa resultar em requisito ou controle verificável; caso contrário, ele permanece apenas documentado, sem efeito sobre o desenvolvimento.
+
+A condição de continuidade deste momento é que todo requisito de segurança associado a risco relevante possua uma decisão arquitetural ou controle correspondente e que essas decisões estejam registradas antes do início da implementação. Isso garante que as práticas de código seguro, os testes e as verificações dos momentos seguintes tenham uma referência objetiva do comportamento esperado.
 ### 2.5. Análise de código e dependências
 
 O momento anterior executa o código e observa o comportamento; este lê o código e procura a construção proibida. A distinção não é formal. Um teste demonstra que a consulta que ele exercita está parametrizada, e nada afirma sobre as demais; uma regra de análise estática percorre o código inteiro e demonstra que nenhuma consulta concatena entrada do usuário. Cobertura por amostragem e cobertura por varredura respondem a perguntas diferentes, e a segunda é a única que sustenta uma afirmação sobre a totalidade do código.
