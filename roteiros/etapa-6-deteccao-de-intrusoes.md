@@ -85,7 +85,72 @@ Os treze eventos foram escolhidos de modo que as três regras da seção seguint
 
 ## 5. O que acontece depois de um alerta
 
-> **Em preenchimento.** Integrante 6.
+As regras da seção anterior terminam onde esta seção começa: no momento em que o alerta é gerado. O plano de tratamento da Etapa 2 já define, para cada risco, os controles de função *Respond* e *Recover*; o que falta descrever é o caminho entre uma coisa e outra — quem recebe o alerta, o que faz primeiro, em quanto tempo, e o que acontece quando o alerta se revela infundado.
+
+### 5.1. Triagem: a primeira pergunta não é a gravidade
+
+Antes de perguntar quanto um alerta é grave, é preciso perguntar se ele é verdadeiro. A análise da [Etapa 5](../docs/etapa-5.md#limitações-e-possíveis-falsos-positivos) mostrou isso na prática: dos três achados examinados, um estava correto mas se referia a um endereço fora do alvo, e outro foi levantado pela própria ferramenta com confiança baixa. Uma regra de detecção tem o mesmo comportamento — ela observa um padrão, não uma intenção.
+
+Todo alerta chega acompanhado de quatro informações, que vêm dos eventos da seção 3 e sem as quais a triagem não é possível: a regra que disparou, os eventos que a satisfizeram, a conta e a origem envolvidas, e a resposta inicial já definida para aquela regra. A triagem tem três desfechos possíveis:
+
+- **Falso positivo.** O limiar ou a condição da regra é ajustado, e o ajuste é registrado. Regra que alerta demais é desligada na prática, mesmo permanecendo ligada no papel: as pessoas param de ler.
+- **Comportamento legítimo.** O padrão é real, mas esperado — uma integração, uma campanha, uma operação de manutenção. Registra-se a exceção com prazo de revisão, e não em caráter permanente, porque exceção sem prazo vira ponto cego.
+- **Incidente confirmado.** Segue para a contenção descrita a seguir.
+
+Os dois primeiros desfechos não são desperdício: são o que mantém a lista de alertas legível. O terceiro é o único que aciona a resposta.
+
+### 5.2. Classes de alerta, primeira ação e prazo
+
+A classe do alerta não é a mesma coisa que o nível do risco a que ele se refere. Ela responde a uma pergunta diferente: quanto tempo se pode esperar antes de agir sem que a janela de contenção se feche.
+
+| Classe | Alerta e regra de origem | Primeira ação | Prazo de primeira resposta | Quem conduz |
+|---|---|---|---|---|
+| **Imediata** | Tentativa de escrita ou exclusão no repositório de auditoria (**C76**, evento E8) | Suspender o administrador envolvido e preservar a cópia segregada antes de qualquer outra medida (**C77**) | Minutos, sem esperar confirmação | Segurança |
+| **Imediata** | Concessão de privilégio administrativo fora do fluxo aprovado, ou primeiro acesso administrativo de conta recém-elevada (**C70**, eventos E6 e E5) | Revogar os privilégios obtidos e as concessões derivadas, e encerrar as sessões da conta (**C71**, **C07**) | Minutos | Segurança e Backend |
+| **Alta** | Erro de sintaxe de consulta ou assinatura de injeção na borda (**C85**, evento E9) | Bloquear a origem e desativar temporariamente o endpoint afetado até a verificação (**C86**) | Até uma hora | Infraestrutura |
+| **Alta** | Mesmo token de sessão usado em duas origens na mesma janela, ou token de renovação reapresentado (**C11**, evento E4) | Revogar todas as sessões e tokens da conta (**C07**) | Até uma hora | Backend |
+| **Alta** | Volume anômalo de leituras de registros de outros titulares (**C39**, evento E11) | Suspender a conta envolvida e bloquear o padrão de acesso identificado (**C40**) | Até uma hora | Segurança e Suporte |
+| **Média** | Cinco falhas de autenticação na mesma conta em dez minutos, ou acesso de origem não reconhecida (**C06**, eventos E1 e E2) | Nenhuma ação humana imediata: a limitação progressiva de **C03** já atua sozinha. A ação humana só ocorre se o padrão persistir depois do atraso aplicado | Mesmo dia | Segurança |
+| **Média** | Divergência repetida entre valor recebido e recalculado, ou transição de pedido fora da sequência (**C20**, **C25**, evento E10) | Sinalizar a conta para análise e congelar a entrega ou o pedido sob apuração (**C21**, **C26**) | Mesmo dia | Backend e Suporte |
+| **Vigilância** | Lacuna na cadeia de resumos ou falha na geração de registro (**C33**, evento E13) | Restabelecer a geração do registro antes de qualquer outra apuração, e tratar o período da lacuna como não observado | Imediata, com prioridade sobre os demais | Infraestrutura e Segurança |
+
+A última linha tem precedência sobre todas as outras, e a razão está na seção 3: enquanto o registro não estiver íntegro, o silêncio das demais regras não significa ausência de incidente. Apurar qualquer outro alerta com a cadeia rompida é trabalhar sobre dado que pode estar incompleto.
+
+### 5.3. Da contenção à recuperação
+
+A contenção interrompe o que está em curso; a recuperação recompõe o que foi alterado. As duas já estão definidas por risco no plano de tratamento, e o alerta apenas seleciona qual delas se aplica.
+
+| Alerta confirmado | Contenção (*Respond*) | Recuperação (*Recover*) | Risco |
+|---|---|---|---|
+| Conta de cliente comprometida | Bloqueio da conta e revogação das sessões (**C07**) | Devolução do acesso ao titular com verificação de identidade e estorno dos pedidos do período (**C08**) | R01, R02 |
+| Elevação indevida de privilégio | Revogação em cadeia das permissões concedidas (**C71**) | Reversão das alterações administrativas a partir do registro de auditoria (**C72**) | R11 |
+| Abuso de privilégio administrativo | Suspensão do administrador e revisão de suas ações no período (**C77**) | Recomposição dos registros a partir da cópia segregada (**C78**) | R12 |
+| Tentativa de injeção em curso | Bloqueio da origem e desativação do endpoint (**C86**) | Restauração a partir do backup e apuração das alterações entre o backup e a detecção (**C59**, **C87**) | R13 |
+| Exposição de dados de clientes | Suspensão da conta e bloqueio do padrão de acesso (**C40**) | Apuração da extensão e comunicação aos titulares e à autoridade nos prazos legais (**C41**) | R07 |
+| Indisponibilidade por abuso | Modo de proteção na borda e degradação controlada das funções não essenciais (**C58**) | Restauração pelo backup, com o tempo de recuperação registrado (**C59**) | R09, R17 |
+
+Duas restrições valem para toda contenção, e nenhuma delas é detalhe de implementação.
+
+**A contenção automática só é aceitável quando reversível.** O bloqueio permanente acionado por contagem é exatamente a condição D06, em que o mecanismo de proteção passa a ser o meio de indisponibilizar contas alheias. É a ressalva já registrada em **C03** e reaproveitada no tratamento de R10: atraso e desafio, sim; bloqueio definitivo automático, não.
+
+**A contenção não pode apagar o rastro que a apuração vai usar.** O registro de auditoria é a fonte única da reconstituição prevista em C72, C78 e C87. Encerrar sessões, suspender contas e desativar endpoints são ações que preservam o registro; excluir dados da conta envolvida, não.
+
+### 5.4. Encerramento e realimentação
+
+Um alerta só é encerrado quando as quatro perguntas abaixo têm resposta registrada:
+
+1. **Qual evento permitiu perceber?** Se nenhum evento da seção 3 corresponde ao que aconteceu, a relação de eventos tem lacuna e precisa ser ampliada.
+2. **Existia controle que deveria ter impedido, e por que não impediu?** A resposta distingue controle ausente de controle presente e ineficaz, que exigem correções diferentes.
+3. **O alerta chegou em tempo útil?** Um alerta correto que chega depois da consumação continua servindo à apuração, mas deixou de servir à contenção, e o limiar precisa ser revisto.
+4. **Quanto ruído a regra produziu até aqui?** É o indicador que decide se a regra continua como está, é ajustada ou é substituída.
+
+As respostas não ficam no incidente. Elas voltam para as etapas anteriores: um alerta recorrente indica risco subavaliado na [Etapa 2](../docs/etapa-2-riscos-nist.md#23-priorização-dos-riscos), ou condição de aceitação do risco residual que deixou de ser verdadeira; um incidente sem evento correspondente indica lacuna nesta etapa; e uma falha que passou por todas as verificações anteriores indica teste que faltava no pipeline da Etapa 7. É esse retorno que impede o monitoramento de virar coleta de registro sem consequência.
+
+### 5.5. Três coisas que não podem acontecer
+
+- **Alerta sem dono.** Regra cujo responsável não esteja definido antes de ela ser ligada produz apenas registro. A definição precede o disparo, e não o sucede.
+- **Resposta automática irreversível.** Toda ação executada sem decisão humana precisa poder ser desfeita, porque ela também será executada nos falsos positivos.
+- **Silêncio interpretado como normalidade.** A ausência de alertas tem duas causas possíveis, e elas são indistinguíveis sem a verificação diária de **C33**: ou não houve incidente, ou o sistema parou de observar a si mesmo.
 
 ---
 
