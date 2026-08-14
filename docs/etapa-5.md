@@ -2,19 +2,80 @@
 
 Nesta etapa foi realizada uma análise de segurança utilizando o **OWASP ZAP (Zed Attack Proxy)** sobre a aplicação **OWASP Juice Shop**, disponibilizada especificamente para treinamento e testes de segurança em aplicações web.
 
-### Ambiente utilizado
+### 1. Sistema e ambiente testado
 
-A aplicação e a ferramenta de análise foram executadas utilizando **Docker**, em uma rede isolada destinada ao laboratório.
+O sistema submetido à verificação é o **OWASP Juice Shop**, aplicação web mantida pela OWASP e construída deliberadamente com vulnerabilidades para fins de treinamento. A escolha atende à condição estabelecida para esta etapa: o Bah Delivery é um sistema projetado, e não implementado, de modo que não existe alvo próprio para ser testado. O Juice Shop enquadra-se na terceira hipótese autorizada, a de aplicação deliberadamente vulnerável executada para fins educacionais, e sua licença e finalidade dispensam autorização adicional.
 
-* **Aplicação analisada:** OWASP Juice Shop
-* **Ferramenta:** OWASP ZAP
-* **Tipo de análise:** Spider + Passive Scan
-* **Ambiente:** Docker
-* **Rede Docker:** `security-lab`
-* **Endereço da aplicação no host:** `http://localhost:3000`
-* **Endereço utilizado pelo ZAP:** `http://juice-shop:3000`
+Nenhum sistema de terceiros foi alvo da verificação. A delimitação do escopo e a única exceção observada durante a execução estão registradas na seção 3.1.
 
-### Execução da análise
+A aplicação foi executada localmente em um container Docker, sem exposição para fora da máquina do integrante responsável pela execução:
+
+| Item | Valor |
+|---|---|
+| Aplicação analisada | OWASP Juice Shop (imagem oficial `bkimminich/juice-shop`) |
+| Forma de execução | Container Docker |
+| Rede Docker | `security-lab`, criada para isolar o laboratório |
+| Endereço no host | `http://localhost:3000` |
+| Endereço interno da rede Docker | `http://juice-shop:3000` |
+| Data da sessão | Noite de 13 de agosto de 2026, com requisições registradas entre 22h44 e 22h53 (horário local) |
+
+A aplicação e a ferramenta foram colocadas na mesma rede Docker para que o ZAP alcançasse o Juice Shop pelo nome do container. Por isso o alvo informado ao ZAP é `http://juice-shop:3000`, e não `http://localhost:3000`: dentro do container da ferramenta, `localhost` designaria o próprio ZAP.
+
+---
+
+### 2. Ferramenta utilizada
+
+A verificação foi conduzida com o **OWASP ZAP (Zed Attack Proxy) 2.17.0**, também executado em container Docker, conforme identificado na barra de título das capturas (`ZAP 2.17.0 (on aa43c1f6fe9c)`, onde o identificador corresponde ao container).
+
+O ZAP opera como proxy de interceptação entre o navegador e a aplicação, o que lhe permite observar integralmente as requisições e respostas trocadas. Sobre esse tráfego atuam dois mecanismos distintos, e a diferença entre eles é relevante para a interpretação dos achados desta etapa:
+
+| Mecanismo | Comportamento | Tráfego adicional gerado |
+|---|---|---|
+| Varredura passiva (*passive scan*) | Analisa as respostas do tráfego já observado, procurando cabeçalhos ausentes, cookies sem atributos de proteção, informações expostas e padrões inseguros. | Nenhum |
+| Varredura ativa (*active scan*) | Envia requisições construídas pela ferramenta para exercitar condições de falha na aplicação. | Sim |
+
+O proxy da ferramenta permaneceu na porta padrão `8080`, e a interface foi utilizada no **Standard Mode**.
+
+---
+
+### 3. Configuração do teste
+
+Na tela **Quick Start > Automated Scan** do ZAP foram utilizados os seguintes parâmetros:
+
+| Parâmetro | Valor utilizado |
+|---|---|
+| URL to attack | `http://juice-shop:3000` |
+| Scan Policy | `Dev Standard` |
+| Use traditional spider | Habilitado |
+| Use modern spider | `Client Spider`, com `Firefox`, no modo `If Modern` |
+| Modo da interface | Standard Mode |
+| Proxy | `localhost:8080` |
+| Autenticação | Nenhuma. A sessão utilizou o `Default Context` sem usuários configurados, de modo que a varredura observou apenas a superfície acessível sem autenticação |
+
+A escolha da política `Dev Standard` é adequada ao objetivo da etapa: ela mantém o conjunto padrão de verificações e limita a intensidade da varredura, o que é suficiente para interpretar alertas sem submeter a aplicação a um volume elevado de requisições.
+
+Os dois spiders cumprem papéis complementares. O spider tradicional percorre os endereços presentes no HTML retornado pelo servidor. O client spider executa a aplicação em um navegador Firefox real e descobre endereços gerados por JavaScript, o que é necessário no caso do Juice Shop, uma aplicação de página única cujas rotas não aparecem no HTML inicial.
+
+A sessão produziu **34 alertas agrupados**, distribuídos pela ferramenta em 1 de risco alto, 12 de risco médio, 11 de risco baixo e 10 informativos. Os três achados analisados na seção seguinte foram selecionados a partir desse conjunto.
+
+Nenhuma vulnerabilidade foi explorada. Não houve tentativa de obter acesso indevido, extrair dados ou manter presença na aplicação: o objetivo, conforme o enunciado, é interpretar os resultados apresentados pela ferramenta.
+
+#### 3.1. Delimitação do escopo
+
+O escopo pretendido da verificação é o host `juice-shop:3000` e apenas ele.
+
+Essa delimitação não foi imposta por configuração. A sessão foi executada com o `Default Context` padrão, sem que o alvo fosse marcado como escopo (*Include in Context*) e sem que o *Automated Scan* fosse restringido a ele. Em consequência, o client spider seguiu links externos presentes nas páginas do Juice Shop, e a varredura passiva registrou alertas sobre respostas de hosts que não pertencem ao alvo, entre eles `github.com` e `www.reddit.com`, este último visível em uma das capturas de evidência.
+
+Duas observações delimitam o alcance desse desvio:
+
+1. Nenhum tráfego de ataque foi dirigido a esses hosts. Os alertas registrados são de origem passiva (`Source: Passive` no detalhe de cada alerta), isto é, resultam da leitura de respostas a requisições de navegação comuns, e não de requisições construídas pela ferramenta. A varredura ativa, que é a que geraria tráfego dessa natureza, não foi dirigida a eles.
+2. A análise dos achados desta etapa considera exclusivamente alertas cuja URL pertence a `http://juice-shop:3000`. Alertas referentes a hosts externos são descartados por estarem fora do escopo, e não por serem falsos positivos.
+
+Em uma repetição desta sessão, a correção é anterior à execução: incluir `http://juice-shop:3000` em um contexto e restringir a varredura a ele, de modo que os spiders não sigam para fora do alvo. O registro deste ponto é intencional, pois o uso de ambiente autorizado é condição da etapa e a delimitação do escopo é parte da configuração do teste, não um detalhe operacional.
+
+---
+
+### 4. Execução da análise
 
 Inicialmente, o OWASP Juice Shop foi executado em um container Docker e disponibilizado localmente na porta `3000`.
 
@@ -26,10 +87,14 @@ Na interface do ZAP foi utilizada a funcionalidade **Automated Scan**, tendo com
 http://juice-shop:3000
 ```
 
-### Resultados
+---
+
+### 5. Resultados
 
 
-### Evidências
+---
+
+### 6. Evidências
 
 As capturas de tela dos três achados identificados pelo OWASP ZAP foram armazenadas no diretório:
 
