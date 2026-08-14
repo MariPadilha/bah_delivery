@@ -17,13 +17,41 @@ Este roteiro descreve como o Bah Delivery perceberia comportamentos suspeitos de
 
 ## 1. O que é detecção de intrusões
 
-> **Em preenchimento.** Integrante 2.
+A detecção de intrusões consiste no processo de **monitorar eventos e comportamentos de um sistema com o objetivo de identificar atividades suspeitas ou potencialmente maliciosas**. Diferentemente de um mecanismo que simplesmente bloqueia uma ação, a detecção procura reconhecer padrões que possam indicar uma tentativa de ataque, abuso de privilégio ou comprometimento de uma conta.
+
+No contexto do **Bah Delivery**, a detecção depende principalmente dos eventos registrados durante a utilização da plataforma. Tentativas de autenticação, recusas de autorização, alterações de privilégios, uso de tokens de sessão e operações administrativas são exemplos de informações que podem ser observadas para identificar comportamentos anormais.
+
+Um único evento nem sempre representa um ataque. Uma falha de autenticação, por exemplo, pode ocorrer porque um usuário digitou sua senha incorretamente. Entretanto, várias falhas de autenticação em um curto intervalo de tempo podem indicar uma tentativa automatizada de acesso. Dessa forma, a detecção não considera apenas a ocorrência de um evento isolado, mas também seu **contexto, frequência e relação com outros eventos**.
+
+Para que esse processo seja possível, os registros precisam conter informações suficientes para determinar **quem realizou a ação, quando ela ocorreu, qual foi sua origem e qual recurso foi afetado**. A partir desses dados podem ser definidas regras que reconheçam determinados padrões e gerem alertas para análise.
+
+A detecção de intrusões, portanto, funciona como uma camada de observação do sistema. Seu objetivo não é afirmar automaticamente que todo comportamento incomum representa um ataque, mas fornecer informações que permitam identificar situações que precisam ser investigadas e, quando necessário, iniciar o processo de resposta ao incidente.
 
 ---
 
 ## 2. A diferença entre prevenir e detectar
 
-> **Em preenchimento.** Integrante 2.
+**Prevenção** e **detecção** são estratégias complementares de segurança, mas atuam em momentos diferentes.
+
+A prevenção procura **impedir que uma ação indevida seja realizada**. Controles de autenticação, autorização, validação de entradas e limitação de tentativas são exemplos de mecanismos preventivos. Quando funcionam corretamente, eles impedem ou dificultam que o ataque alcance seu objetivo.
+
+A detecção, por outro lado, procura **perceber que um comportamento suspeito está ocorrendo ou ocorreu**. Para isso, utiliza eventos e registros produzidos pela aplicação e pela infraestrutura, permitindo identificar padrões que podem representar uma tentativa de ataque ou um incidente de segurança.
+
+Por exemplo, no processo de autenticação do Bah Delivery, limitar tentativas excessivas de login é uma medida de **prevenção**, pois dificulta ataques automatizados. Registrar as falhas de autenticação e gerar um alerta quando uma mesma conta apresenta várias tentativas em um curto período é uma medida de **detecção**, pois permite reconhecer o comportamento suspeito.
+
+Outro exemplo ocorre no controle de acesso. Impedir que um cliente acesse uma rota administrativa é prevenção. Registrar repetidas tentativas desse cliente de acessar recursos administrativos e gerar um alerta sobre esse comportamento é detecção.
+
+A principal diferença pode ser resumida da seguinte forma:
+
+| Prevenção                             | Detecção                                                     |
+| ------------------------------------- | ------------------------------------------------------------ |
+| Procura impedir a ação indevida       | Procura identificar a atividade suspeita                     |
+| Atua antes ou durante a tentativa     | Atua durante ou após a ocorrência dos eventos                |
+| Pode bloquear ou limitar uma operação | Pode registrar eventos e gerar alertas                       |
+| Exemplo: negar acesso sem autorização | Exemplo: detectar várias tentativas de acesso não autorizado |
+| Exemplo: limitar tentativas de login  | Exemplo: alertar sobre sucessivas falhas de autenticação     |
+
+A existência de mecanismos preventivos não elimina a necessidade de detecção. Um controle preventivo pode falhar, ser contornado ou não reconhecer uma ação aparentemente legítima realizada por uma conta comprometida. Por isso, o Bah Delivery utiliza as duas abordagens de forma complementar: **prevenir sempre que possível e detectar comportamentos suspeitos para permitir uma resposta quando a prevenção não for suficiente**.
 
 ---
 
