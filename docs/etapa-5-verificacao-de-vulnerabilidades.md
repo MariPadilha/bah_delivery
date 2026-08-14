@@ -2,7 +2,21 @@
 
 Nesta etapa foi realizada uma análise de segurança utilizando o **OWASP ZAP (Zed Attack Proxy)** sobre a aplicação **OWASP Juice Shop**, disponibilizada especificamente para treinamento e testes de segurança em aplicações web.
 
-### 1. Sistema e ambiente testado
+---
+
+## Sumário
+
+1. [Sistema e ambiente testado](#1-sistema-e-ambiente-testado)
+2. [Ferramenta utilizada](#2-ferramenta-utilizada)
+3. [Configuração do teste](#3-configuração-do-teste)
+4. [Execução da análise](#4-execução-da-análise)
+5. [Resultados](#5-resultados)
+6. [Evidências](#6-evidências)
+7. [Distribuição Integrante X Responsabilidades](#7-distribuição-integrante-x-responsabilidades)
+
+---
+
+## 1. Sistema e ambiente testado
 
 O sistema submetido à verificação é o **OWASP Juice Shop**, aplicação web mantida pela OWASP e construída deliberadamente com vulnerabilidades para fins de treinamento. A escolha atende à condição estabelecida para esta etapa: o Bah Delivery é um sistema projetado, e não implementado, de modo que não existe alvo próprio para ser testado. O Juice Shop enquadra-se na terceira hipótese autorizada, a de aplicação deliberadamente vulnerável executada para fins educacionais, e sua licença e finalidade dispensam autorização adicional.
 
@@ -23,7 +37,7 @@ A aplicação e a ferramenta foram colocadas na mesma rede Docker para que o ZAP
 
 ---
 
-### 2. Ferramenta utilizada
+## 2. Ferramenta utilizada
 
 A verificação foi conduzida com o **OWASP ZAP (Zed Attack Proxy) 2.17.0**, também executado em container Docker, conforme identificado na barra de título das capturas (`ZAP 2.17.0 (on aa43c1f6fe9c)`, onde o identificador corresponde ao container).
 
@@ -38,7 +52,7 @@ O proxy da ferramenta permaneceu na porta padrão `8080`, e a interface foi util
 
 ---
 
-### 3. Configuração do teste
+## 3. Configuração do teste
 
 Na tela **Quick Start > Automated Scan** do ZAP foram utilizados os seguintes parâmetros:
 
@@ -75,7 +89,7 @@ Em uma repetição desta sessão, a correção é anterior à execução: inclui
 
 ---
 
-### 4. Execução da análise
+## 4. Execução da análise
 
 Inicialmente, o OWASP Juice Shop foi executado em um container Docker e disponibilizado localmente na porta `3000`.
 
@@ -89,7 +103,7 @@ http://juice-shop:3000
 
 ---
 
-### 5. Resultados
+## 5. Resultados
 
 Foram selecionados três achados do conjunto descrito na seção 3, um por integrante responsável. A tabela abaixo segue o formato sugerido no enunciado e reúne, para cada achado, a evidência que o sustenta, a consequência possível, a categoria a que pertence e a medida proposta. O detalhamento de cada linha vem nas subseções seguintes.
 
@@ -235,7 +249,7 @@ O achado é de origem passiva e nenhuma tentativa de enquadramento ou de desvio 
 
 ---
 
-### 6. Evidências
+## 6. Evidências
 
 As capturas de tela dos três achados identificados pelo OWASP ZAP foram armazenadas no diretório:
 
@@ -278,3 +292,16 @@ Uma ferramenta automatizada devolve indícios, e não conclusões. Esta seção 
 Dos três achados, um é objetivamente válido mas está fora do escopo (A03), um depende de verificação para distinguir funcionalidade de vulnerabilidade (A01) e um foi levantado com confiança baixa pela própria ferramenta (A02). Nenhum deles pode ser tratado como vulnerabilidade confirmada apenas com o que esta execução produziu.
 
 É esse o motivo pelo qual, no pipeline proposto na Etapa 7, o resultado de uma varredura não bloqueia a continuidade por si só: o achado precisa antes de triagem, com responsável identificado e verificação registrada. Ferramenta automatizada é o que amplia o alcance da revisão; ela não substitui a decisão sobre o que é, de fato, um risco.
+
+---
+
+## 7. Distribuição Integrante X Responsabilidades
+
+| Integrante | Responsabilidades |
+|------------|-------------------|
+| Arthur Medeiros | Analisar o achado A01. |
+| Emanuel Ferreira | Escrever limitações e possíveis falsos positivos dos achados. |
+| Guilherme Mundt | Analisar o achado A03. |
+| Lívia Barbosa | Analisar o achado A02. |
+| Mariana Padilha | Fazer o setup do Juice Shop e do ZAP, executar e fazer capturas de tela. |
+| Matheus Ciocca | Escrever a descrição do ambiente, da ferramenta e da configuração do teste. |
