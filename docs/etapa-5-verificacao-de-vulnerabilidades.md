@@ -109,13 +109,111 @@ Foram selecionados três achados do conjunto descrito na seção 3, um por integ
 
 | ID | Alerta ou achado | Evidência | Possível impacto | Relação com OWASP ou CWE | Correção proposta |
 |---|---|---|---|---|---|
-| A01 | *Em preenchimento, integrante 1* | | | | |
+| A01 | **Off-site Redirect:** o endpoint `http://juice-shop:3000/redirect` utiliza o parâmetro `to` em um redirecionamento para destino externo. Risco **Alto** e confiança **Média** atribuídos pelo ZAP; scanner passivo 10028 | `A01.png`, com `URL: http://juice-shop:3000/redirect?to=https://github.com/juice-shop/juice-shop`, `Parameter: to`, `CWE ID: 601`, `WASC ID: 38` e `Source: Passive (10028 - Off-site Redirect)`. O destino observado pertence ao GitHub oficial do Juice Shop e, portanto, a captura demonstra o mecanismo de redirecionamento, mas não que destinos arbitrários sejam aceitos | Se o parâmetro `to` aceitar destinos arbitrários, um atacante pode utilizar uma URL do domínio legítimo para encaminhar vítimas a páginas externas maliciosas, facilitando phishing e engenharia social. O impacto é condicional porque a sessão não testou um destino não autorizado | CWE-601 (*URL Redirection to Untrusted Site — Open Redirect*) e WASC-38, atribuídos pelo próprio ZAP | Validar o destino no servidor e permitir apenas URLs ou domínios previamente autorizados; preferencialmente utilizar identificadores internos ou caminhos relativos em vez de aceitar URLs externas completas. Repetir a requisição com destino não previsto para confirmar se o achado é explorável |
 | A02 | **Absence of Anti-CSRF Tokens:** O formulário HTML devolvido por `http://juice-shop:3000/profile` não contém campo com nome conhecido de token anti-CSRF. Risco **Médio** e confiança **Baixa** atribuídos pelo ZAP; scanner passivo 10202, com 3 instâncias na árvore de alertas | `A02.png`, com `URL: http://juice-shop:3000/profile`, `CWE ID: 352`, `WASC ID: 9`, `Source: Passive (10202 - Absence of Anti-CSRF Tokens)` e `Evidence: <form action="./profile/image/file" ... method="post" enctype="multipart/form-data">`. O `Other Info` lista os quinze nomes de campo procurados e conclui com `[Form 1: "picture"]`. A mesma captura mostra, na resposta, `X-Frame-Options: SAMEORIGIN`, `Access-Control-Allow-Origin: *` e a CSP sem `form-action` já analisada em A03 | Se a requisição for autenticada apenas pelo cookie de sessão, uma página de terceiro pode submeter o formulário no navegador da vítima autenticada e concluir a operação sem que ela perceba. O alcance do que está evidenciado é a substituição da imagem de perfil, enquanto o alcance da classe é qualquer operação de escrita servida no mesmo padrão. A escrita é cega, fazendo com que nem o CORS com `*` nem a política de mesma origem permitam ao atacante ler a resposta | CWE-352 (*Cross-Site Request Forgery*), atribuída pelo ZAP; WASC-9; A01:2021 – *Broken Access Control*; WSTG-v4.2-SESS-05, conforme a etiqueta do próprio alerta | Emitir token de sincronização vinculado à sessão e validá-lo no servidor em toda requisição de escrita; declarar `SameSite=Lax` ou `Strict`, com `HttpOnly` e `Secure`, no cookie de sessão; conferir `Origin` ou `Referer` nas rotas de escrita; declarar `form-action 'self'` na CSP, conforme A03; reexecutar a varredura com sessão autenticada para confirmar o achado |
 | A03 | **CSP: Failure to Define Directive with No Fallback.** O cabeçalho `Content-Security-Policy` da resposta não declara diretivas que não herdam de `default-src`. Risco **Médio** e confiança **Alta** atribuídos pelo ZAP; scanner passivo 10055, referência 10055-13 | `A03.png`, com `Parameter: Content-Security-Policy` e `Other Info: The directive(s): frame-ancestors is/are among the directives that do not fallback to default-src`. A URL do alerta é externa ao alvo, conforme a subseção 5.3.1. A mesma condição no alvo está em `A02.png`: a resposta de `http://juice-shop:3000/profile` traz `Content-Security-Policy: img-src 'self' /assets/public/images/uploads/default.svg; script-src 'self' 'unsafe-eval'`, sem `frame-ancestors`, `form-action`, `base-uri` nem `default-src` | Sem `frame-ancestors`, a página pode ser embutida por terceiro e usada para induzir cliques em ações autenticadas. Sem `form-action`, uma injeção de HTML redireciona a submissão de um formulário para servidor do atacante. Sem `default-src`, tudo o que não foi listado permanece irrestrito, de modo que a política deixa de valer como malha de fundo | CWE-693 (*Protection Mechanism Failure*), atribuída pelo ZAP, e CWE-1021 (*Improper Restriction of Rendered UI Layers or Frames*) para o efeito de enquadramento; WASC-15; A05:2021 – *Security Misconfiguration* | Declarar `default-src` e, explicitamente, `frame-ancestors`, `form-action`, `base-uri` e `object-src`; remover `'unsafe-eval'` de `script-src`; manter `X-Frame-Options` como defesa em profundidade; publicar primeiro em `Content-Security-Policy-Report-Only` e reexecutar a varredura com o escopo restrito ao alvo |
 
 #### 5.1. A01 — Off-site Redirect
 
-> **Em preenchimento.** Integrante 1.
+**O que a ferramenta apontou.** O scanner passivo **10028 — Off-site Redirect** identificou que o endpoint `http://juice-shop:3000/redirect` utiliza o parâmetro de consulta `to` para determinar o destino de um redirecionamento externo. Na instância registrada em `A01.png`, a requisição observada foi:
+
+```text
+http://juice-shop:3000/redirect?to=https://github.com/juice-shop/juice-shop
+```
+
+O ZAP atribuiu ao achado risco **Alto** e confiança **Média**, identificando o parâmetro `to`, **CWE-601** e **WASC-38**. No campo `Other Info`, a ferramenta registra que uma resposta de redirecionamento `301` ou `302` parece conter no cabeçalho `Location` o valor recebido pela aplicação, o que caracteriza o padrão procurado pela regra.
+
+##### 5.1.1. O alerta pertence ao alvo, mas não confirma sozinho a vulnerabilidade
+
+Diferentemente do achado A03, a URL observada pertence ao host definido como alvo da análise, `juice-shop:3000`. Portanto, o A01 não deve ser descartado por desvio de escopo.
+
+A limitação está em outro ponto. O destino registrado na evidência é `https://github.com/juice-shop/juice-shop`, endereço relacionado ao próprio projeto OWASP Juice Shop. A existência de uma funcionalidade que redireciona para um endereço externo conhecido não significa, por si só, que a aplicação aceite qualquer endereço fornecido por um usuário.
+
+A regra passiva consegue observar que o parâmetro `to` aparece associado ao redirecionamento, mas não determina se o servidor valida esse parâmetro contra uma lista de destinos permitidos. Assim, a captura demonstra a existência do mecanismo de redirecionamento externo, mas não demonstra que um atacante consiga controlar livremente seu destino.
+
+##### 5.1.2. Possível impacto
+
+Caso o parâmetro `to` aceite destinos externos arbitrários sem validação, a funcionalidade pode caracterizar um **Open Redirect**. Nesse cenário, um atacante poderia construir uma URL utilizando o domínio legítimo da aplicação e fazer com que ela encaminhasse o usuário para uma página controlada pelo próprio atacante.
+
+Um exemplo conceitual seria:
+
+```text
+http://juice-shop:3000/redirect?to=https://dominio-malicioso.example
+```
+
+Se um endereço desse tipo fosse aceito, a confiança do usuário no domínio inicial poderia ser explorada em campanhas de *phishing* ou engenharia social. A vítima começaria a navegação em um endereço pertencente à aplicação legítima e seria posteriormente enviada para outro domínio.
+
+Esse impacto, entretanto, é **condicional**. A sessão registrada não realizou essa substituição e não demonstrou que um domínio arbitrário seria aceito.
+
+##### 5.1.3. Relação com CWE e classificação do achado
+
+O próprio ZAP associa o alerta ao **CWE-601 — URL Redirection to Untrusted Site (Open Redirect)** e ao **WASC-38**. A fraqueza descrita pelo CWE-601 ocorre quando uma aplicação utiliza uma entrada não confiável para determinar o destino de um redirecionamento sem restringir adequadamente os locais para os quais o usuário pode ser encaminhado.
+
+No caso observado, existe correspondência estrutural com essa classe: o parâmetro `to` participa da escolha de um destino externo. O que a evidência disponível não permite determinar é se esse valor é realmente **não confiável e arbitrário**, condição necessária para tratar o alerta como vulnerabilidade confirmada.
+
+Por isso, mesmo com classificação de risco **Alto** dada pelo ZAP, o resultado deve permanecer como achado que exige confirmação. A severidade apresentada pela ferramenta descreve o impacto potencial da classe encontrada, e não substitui a validação de que a condição explorável esteja presente nesta instância.
+
+##### 5.1.4. Como confirmar o achado
+
+A confirmação exige repetir a requisição substituindo o destino conhecido por um domínio que não faça parte dos destinos legítimos da aplicação e observar a resposta do servidor.
+
+Conceitualmente, o teste consiste em comparar:
+
+```text
+/redirect?to=https://github.com/juice-shop/juice-shop
+```
+
+com um destino não autorizado:
+
+```text
+/redirect?to=https://dominio-malicioso.example
+```
+
+Há dois resultados possíveis:
+
+1. **O servidor aceita o novo destino e realiza o redirecionamento.** Nesse caso, o parâmetro permite controlar arbitrariamente o endereço externo e o achado se confirma como Open Redirect.
+2. **O servidor rejeita, ignora ou substitui o destino por um endereço previamente autorizado.** Nesse caso, há validação ou uma lista de destinos permitidos, e o alerta observado não se confirma como vulnerabilidade explorável.
+
+Essa verificação não foi realizada na sessão documentada, pois os achados desta etapa foram obtidos por análise passiva e nenhuma vulnerabilidade foi explorada.
+
+##### 5.1.5. Correção proposta
+
+Caso a confirmação demonstre que o destino pode ser controlado arbitrariamente, o parâmetro de redirecionamento deve ser validado no servidor antes de qualquer resposta `3xx`.
+
+A medida principal é restringir os destinos possíveis a uma **lista explícita de endereços ou domínios permitidos**, rejeitando qualquer valor não previsto. Sempre que possível, a aplicação deve utilizar identificadores internos ou caminhos relativos em vez de receber uma URL externa completa diretamente do usuário.
+
+Por exemplo, em vez de aceitar:
+
+```text
+/redirect?to=https://dominio.example/pagina
+```
+
+a aplicação pode trabalhar com um identificador previamente associado a um destino confiável:
+
+```text
+/redirect?target=github
+```
+
+O servidor então resolve `github` internamente para o endereço autorizado correspondente. Dessa forma, o usuário deixa de controlar diretamente a URL de destino.
+
+Após a correção, a verificação deve ser repetida tentando fornecer destinos externos não previstos. O comportamento esperado é que a aplicação recuse esses valores e permita apenas os redirecionamentos explicitamente autorizados.
+
+##### 5.1.6. Limitações desta análise
+
+O A01 foi produzido pelo scanner **passivo 10028**. Nenhum destino arbitrário foi submetido ao endpoint durante a sessão registrada, e nenhuma tentativa de exploração foi realizada.
+
+Consequentemente, a evidência permite afirmar que:
+
+* existe um endpoint de redirecionamento no alvo;
+* o parâmetro `to` participa do redirecionamento observado;
+* o destino da instância capturada é externo ao host `juice-shop:3000`;
+* o ZAP associa essa condição ao CWE-601;
+* o destino registrado é `https://github.com/juice-shop/juice-shop`.
+
+A mesma evidência **não permite afirmar** que qualquer domínio seja aceito pelo parâmetro `to`.
+
+Por isso, o A01 deve ser interpretado como um achado que necessita de validação. A classificação de risco Alto representa o impacto possível de um Open Redirect confirmado, enquanto a confiança Média é coerente com a incerteza existente sobre a validação feita pelo servidor.
+
 
 #### 5.2. A02 — Absence of Anti-CSRF Tokens
 **O que a ferramenta apontou.** O scanner passivo 10202 procura, dentro de cada formulário HTML observado, um campo cujo nome pertença a uma lista de nomes conhecidos de token anti-CSRF. Dessa forma, quando não encontra nenhum, o alerta é levantado. É o que o `Other Info` da captura registra: nenhum dos quinze nomes procurados, tais como `anticsrf`, `CSRFToken`, `__RequestVerificationToken`, `csrfmiddlewaretoken`, `authenticity_token`, `OWASP_CSRFTOKEN`, `anoncsrf`, `csrf_token`, `_csrf`, `_csrfSecret`, `__csrf_magic`, `CSRF`, `_token`, `_csrf_token` e `_csrfToken`, foi encontrado no formulário identificado como `[Form 1: "picture"]`. O ZAP classificou o achado como risco **Médio** com confiança **Baixa**, levantando o ponto de partida da análise: diferentemente da regra objetiva de A03, por exemplo, aqui a ferramenta declara não saber se o que ela não viu está de fato ausente.
