@@ -165,23 +165,45 @@ Duas observações completam a lista:
 
 O vídeo final não apresenta um sistema em funcionamento, porque o Bah Delivery não foi implementado — o que existe para apresentar é a análise, e é ela que o roteiro expõe. Filmar uma demonstração inexistente seria contradizer, na própria gravação, a premissa registrada desde a Etapa 1: o trabalho avalia a segurança de um projeto, não o comportamento de um software. O roteiro segue, por isso, o mesmo pipeline definido na seção 1, na mesma ordem em que os momentos aparecem ali, porque essa ordem já expressa a dependência entre eles — não se explica a análise de código antes de existir código a analisar, nem o monitoramento antes de existir o que monitorar.
 
-Cada bloco é narrado por quem escreveu o conteúdo correspondente, e essa escolha não é protocolar. Quem redigiu uma seção sabe qual foi a dúvida por trás de cada decisão registrada nela — por que a condição de continuidade do momento 5 é a triagem, e não a ausência de achados; por que o A02 é o achado de menor confiança da Etapa 5 — e consegue explicar isso sem reler o texto em voz alta. Um narrador único, apresentando o trabalho de outra pessoa, reproduziria a redação sem o raciocínio, e o vídeo perderia exatamente o que o distingue do documento escrito. A exceção é a abertura e o encerramento, que não pertencem a nenhum momento isolado do pipeline e cabem a quem amarra o conjunto.
+A divisão das falas segue dois critérios, nesta ordem. O primeiro é a **autoria**: sempre que possível, um bloco é narrado por quem escreveu o conteúdo correspondente, porque quem redigiu uma seção sabe qual foi a dúvida por trás de cada decisão registrada nela — por que a condição de continuidade do momento 5 é a triagem, e não a ausência de achados; por que o A02 é o achado de menor confiança da Etapa 5 — e consegue explicar isso sem reler o texto em voz alta. Um narrador único, apresentando o trabalho de outra pessoa, reproduziria a redação sem o raciocínio, e o vídeo perderia exatamente o que o distingue do documento escrito.
+
+O segundo critério é o **equilíbrio do tempo de fala**, e ele existe porque a autoria sozinha não o produz: as etapas 1 e 2 concentram muito mais material de apresentação que as demais, de modo que a divisão por autoria pura daria a um integrante quase quatro vezes o tempo de outro. Onde os dois critérios entram em conflito, blocos inteiros foram deslocados para quem tinha menos tempo, preferindo sempre o deslocamento que mantém o assunto próximo do que a pessoa já escreveu — os riscos e as decisões de arquitetura foram para quem redigiu o plano de tratamento da Etapa 2 e as decisões DA01 e DA02; a seção de condições que impedem a continuidade foi para quem apresenta a verificação, porque é dela que a condição mais importante deriva. O resultado deixa os seis integrantes entre **1min10 e 1min35** de fala.
+
+A abertura e o encerramento não pertencem a nenhum momento isolado do pipeline e cabem a quem amarra o conjunto.
 
 O apoio visual de cada bloco vem exclusivamente do que já foi produzido nas etapas anteriores — diagramas, tabelas e capturas de tela já existentes nos documentos —, pelo mesmo motivo que impede a demonstração ao vivo: gravar qualquer tela do Bah Delivery sugeriria a existência de um sistema que o trabalho, desde o início, declara não implementado.
 
 ### 4.1. Estrutura por blocos
 
-| Bloco | Conteúdo | Apresenta | Apoio visual |
-|---|---|---|---|
-| Abertura | O que é o Bah Delivery, o que o trabalho analisa e a lógica do pipeline | Emanuel Ferreira | Sumário do README |
-| Momentos 1 e 2 — Planejamento e arquitetura | Casos de abuso e ameaças STRIDE da Etapa 1; requisitos e decisões de arquitetura da Etapa 3 | Arthur Medeiros | Diagramas de `diagramas/etapa-1/` e `diagramas/etapa-3/` |
-| Momentos 3 e 4 — Implementação e testes | Práticas de código seguro e testes definidos antes da implementação, na Etapa 4 | Mariana Padilha | Trechos de código/pseudocódigo da Etapa 4 |
-| Momento 5 — Análise de código e dependências | Regras estáticas de C79, inventário de dependências, busca por segredos | Guilherme Mundt | Tabela da seção 2.5 |
-| Momento 6 — Teste dinâmico e a sessão do ZAP | A varredura da Etapa 5 e as três correções que o pipeline aplica a ela | Guilherme Mundt | Capturas de `docs/evidencias/etapa-5/` |
-| Achados A01 a A03 e suas limitações | O que cada achado do ZAP permite afirmar e o que não permite | Arthur Medeiros, Lívia Barbosa, Guilherme Mundt, Emanuel Ferreira | Tabela da seção 5 da Etapa 5 |
-| Momentos 7 e 8 — Implantação e monitoramento | Verificação de ambiente; eventos e regras de detecção da Etapa 6 | Matheus Ciocca | Tabelas das seções 3.3 e 4 da Etapa 6 |
-| Condições que impedem a continuidade | As condições que barram o pipeline antes da implantação | Lívia Barbosa | Seção 3 deste roteiro |
-| Encerramento | Por que o momento 8 fecha um ciclo, e não uma etapa final | Emanuel Ferreira | — |
+A apresentação tem vinte slides, e a coluna *Slides* indica quais correspondem a cada bloco. O texto integral de cada fala está em [`apresentacao/bah-delivery-roteiro-de-falas.pdf`](../apresentacao/bah-delivery-roteiro-de-falas.pdf).
+
+| Bloco | Slides | Conteúdo | Apresenta | Apoio visual |
+|---|---|---|---|---|
+| Abertura | 1, 2 | O que é o Bah Delivery e a premissa de que ele não foi implementado | Emanuel Ferreira | Diagrama de casos de uso da Etapa 1 |
+| A cadeia entre as etapas | 3 | Como cada etapa consome o que a anterior produziu, do identificador da ameaça ao do controle | Mariana Padilha | Linha do tempo das sete etapas |
+| Momento 1 — Ameaças e casos de abuso | 4, 5, 6 | Ativos e pontos de interação, as ameaças STRIDE e os casos de abuso da Etapa 1 | Arthur Medeiros | Diagramas de `diagramas/etapa-1/` |
+| Momentos 1 e 2 — Riscos e arquitetura | 7, 8, 9 | Riscos prioritários da Etapa 2, requisitos de segurança e decisões de arquitetura da Etapa 3 | Matheus Ciocca | Diagrama de `diagramas/etapa-3/` |
+| Momentos 3 e 4 — Implementação e testes | 10, 11, 12 | Práticas de código seguro e testes definidos antes da implementação, na Etapa 4 | Mariana Padilha | Trechos de código/pseudocódigo da Etapa 4 |
+| Momentos 5 e 6 — Teste dinâmico e a sessão do ZAP | 13 | A varredura da Etapa 5, seu ambiente e sua configuração | Guilherme Mundt | Contagem de alertas da Etapa 5 |
+| Achados A01 a A03 | 14 | O que cada achado do ZAP permite afirmar e o que não permite | Arthur Medeiros, Lívia Barbosa, Guilherme Mundt | Capturas de `docs/evidencias/etapa-5/` |
+| Limitações da verificação | 15 | Por que nenhum dos três achados se confirma sozinho | Guilherme Mundt | Seção de limitações da Etapa 5 |
+| Momento 8 — Eventos e detecção | 16, 17 | Os eventos registrados e as três regras de detecção da Etapa 6 | Lívia Barbosa | Tabelas das seções 3.3 e 4 da Etapa 6 |
+| Momentos 7 e 8 — O pipeline | 18 | Os oito momentos e o ciclo que o monitoramento fecha | Matheus Ciocca | Tabela da seção 1 deste roteiro |
+| Condições que impedem a continuidade | 19 | As condições que barram o pipeline antes da implantação | Guilherme Mundt | Seção 3 deste roteiro |
+| Encerramento | 20 | O que o grupo aprendeu, e por que nada disso é prova de risco reduzido | Emanuel Ferreira | — |
+
+O tempo de fala resultante, estimado a partir da contagem de palavras do roteiro:
+
+| Integrante | Slides | Tempo |
+|---|---|---|
+| Matheus Ciocca | 7, 8, 9, 18 | ~1min34 |
+| Mariana Padilha | 3, 10, 11, 12 | ~1min28 |
+| Guilherme Mundt | 13, 14c, 15, 19 | ~1min28 |
+| Emanuel Ferreira | 1, 2, 20 | ~1min18 |
+| Arthur Medeiros | 4, 5, 6, 14a | ~1min14 |
+| Lívia Barbosa | 14b, 16, 17 | ~1min10 |
+
+As subseções seguintes descrevem o **conteúdo** de cada bloco, e não a sua atribuição. Duas delas correspondem a mais de uma linha da tabela acima, por efeito do equilíbrio: a 4.3 cobre os slides 4 a 9, que são apresentados por dois integrantes, e a 4.7 cobre os slides 14 e 15, em que o trio dos achados é seguido pela leitura das limitações.
 
 ### 4.2. Abertura
 

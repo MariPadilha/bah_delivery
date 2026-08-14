@@ -195,4 +195,3 @@ Três observações fecham a etapa.
 | Lívia Barbosa | Definir requisito de segurança e sua respectiva vulnerabilidade catalogada. |
 | Mariana Padilha | Definir requisito de segurança e sua respectiva vulnerabilidade catalogada. |
 | Matheus Ciocca | Definir as decisões de arquitetura DA01 e DA02. |
-| Matheus Ciocca | Definir decisões de arquitetura. |
