@@ -11,7 +11,8 @@ O sistema, os ativos, os usuários, as ameaças STRIDE e os casos de abuso são 
 1. [Metodologia de Avaliação de Riscos](#1-metodologia-de-avaliação-de-riscos)
 2. [Registro Inicial de Riscos](#2-registro-inicial-de-riscos)
 3. [Tratamento de Riscos](#3-tratamento-de-riscos)
-4. [Distribuição Integrante X Responsabilidades](#4-distribuição-integrante-x-responsabilidades)
+4. [Considerações Finais](#4-considerações-finais)
+5. [Distribuição Integrante X Responsabilidades](#5-distribuição-integrante-x-responsabilidades)
 
 ---
 
@@ -916,27 +917,31 @@ A ordem é definida a partir dos seguintes critérios, aplicados nesta sequênci
 
 A coluna *Ordem* indica a posição de execução, e não a prioridade do risco, que permanece registrada na coluna própria para permitir a comparação entre as duas. A coluna *Controles envolvidos* reproduz a seção 3.5.3, que permanece sendo a fonte da correspondência entre riscos e controles.
 
+A unidade da ordenação é o risco, e não o controle isolado: cada posição corresponde ao conjunto de controles de um risco. Os cinco controles reaproveitados, relacionados na seção 3.5.4, são implementados na primeira posição em que aparecem, e as posições seguintes que os reutilizam não os implementam de novo. Quando um controle necessário a uma posição só é entregue mais adiante, a coluna *Pré-requisito* registra isso explicitamente.
+
 | Ordem | Risco | Prioridade (2.3) | Nível inicial | Controles envolvidos | Pré-requisito | Justificativa da posição |
 |:---:|---|:---:|---|---|---|---|
-| | R01 | 6 | Alto | C01 a C08 | | |
-| | R02 | 14 | Médio | C09, C10, C11 e C07 | | |
-| | R03 | 15 | Médio | C12 a C17 | | |
-| | R04 | 8 | Alto | C18 a C22 | | |
-| | R05 | 16 | Médio | C23 a C27 | | |
-| | R06 | 13 | Médio | C28 a C33 | | |
-| | R07 | 4 | Crítico | C34 a C41 | | |
-| | R08 | 3 | Crítico | C42 a C50 e C31 | | |
-| | R09 | 5 | Crítico | C51 a C59 | | |
-| | R10 | 12 | Alto | C60 a C63 e C03 | | |
-| | R11 | 2 | Crítico | C64 a C72 e C07 | | |
-| | R12 | 10 | Alto | C73 a C78 e C30 | | |
-| | R13 | 1 | Crítico | C79 a C87 e C59 | | |
-| | R14 | 11 | Alto | C88 a C93 | | |
-| | R15 | 17 | Médio | C94 a C99 | | |
-| | R16 | 7 | Alto | C100 a C104 | | |
-| | R17 | 9 | Alto | C105 a C112 | | |
+| 1 | R06 | 13 | Médio | C28 a C33 | — | O registro de auditoria é o que torna verificável todo o restante do plano. C30 e C31 são reaproveitados por R08 e R12, e a evidência exigida por todos os controles de função *Detect* é o alerta registrado. Sem essa base, nenhuma regra das posições seguintes pode ser escrita nem comprovada. Dentro do risco, C29 precede C30 e C31. |
+| 2 | R13 | 1 | Crítico | C79 a C87 e C59 | C30 e C31, da posição 1, para o alerta de C85 | Risco de maior pontuação do registro e único com estratégia *Evitar*. C79 vem antes de C81 porque a regra de análise estática precisa estar no pipeline antes da reescrita, sob pena de o código novo reintroduzir a concatenação, e C80 é pré-requisito declarado de C81. A parte *Recover* do risco depende de C59, entregue na posição 9. |
+| 3 | R01 | 6 | Alto | C01 a C08 | — | Antecipado em relação à prioridade por dois motivos: C03 e C07 são reaproveitados por R10, R02 e R11, e o serviço de autenticação definido aqui é pressuposto de C68, na posição 5, que resolve o papel do usuário a cada requisição. C01 precede C02, porque a política define de quais perfis o segundo fator é exigido. |
+| 4 | R02 | 14 | Médio | C09, C10, C11 e C07 | C07, da posição 3 | O risco de menor prioridade entre os antecipados. C09 e C10 alteram o formato e o ciclo de vida da sessão emitida na posição 3; fazê-lo depois da posição 5 obrigaria a refazer a emissão, a renovação e os testes de C68. É o critério de custo de reversão aplicado à sessão. |
+| 5 | R11 | 2 | Crítico | C64 a C72 e C07 | Sessão de R02 e C07, das posições 3 e 4 | Segundo risco em prioridade. Estabelece o ponto único de decisão de autorização no servidor (C66) e a resolução do papel fora do token (C68), reaproveitados como decisão de projeto por C23, C36 e C101, nas posições 8, 10 e 13. C65 precede C66, porque não é possível negar por padrão sem conhecer as permissões vigentes. |
+| 6 | R12 | 10 | Alto | C73 a C78 e C30 | C30, da posição 1, e C65, da posição 5 | Antecipado porque C73 e C74 segregam os papéis administrativos inventariados em C65 e criam o papel de auditoria de que C47 depende, na posição 7. Manter R12 na posição correspondente à sua prioridade deixaria C47 sem o papel a que ele restringe o acesso. |
+| 7 | R08 | 3 | Crítico | C42 a C50 e C31 | C31, da posição 1, e C74, da posição 6 | C44, C45 e C46 alteram o formato do dado armazenado, e o critério de custo de reversão os posiciona antes dos controles que apenas leem esses dados. C44 depois da posição 3 evita refazer o fluxo de autenticação já entregue. C43 precede os três, por delimitar onde o dado sensível hoje existe. |
+| 8 | R07 | 4 | Crítico | C34 a C41 | C66, da posição 5 | C36 substitui identificadores sequenciais por identificadores não previsíveis, alteração de dados persistidos e de contratos da API cuja reversão é cara, e aplica a verificação de propriedade sobre a função de autorização da posição 5. C34 e C35 precedem C37, porque a redução do conteúdo devolvido depende da tabela de campos por perfil. |
+| 9 | R09 | 5 | Crítico | C51 a C59 | — | Conjunto autônomo, de responsabilidade predominante da Infraestrutura, que pode correr em paralelo às posições anteriores. Fecha a parte *Recover* de R13 ao entregar C59, e a borda contratada em C51 e C53 é pré-requisito de C109, na posição 12. C52 precede C53, por identificar o que precisa ser absorvido. |
+| 10 | R16 | 7 | Alto | C100 a C104 | C66, da posição 5, e C36, da posição 8 | C100 é levantamento e precede C101, que é a mesma verificação de propriedade de C36 aplicada às operações de gerenciamento. Com a função de autorização e a verificação de propriedade já existentes, a posição consome trabalho menor do que sua prioridade sugere. |
+| 11 | R04 | 8 | Alto | C18 a C22 | C30 e C31, da posição 1, para o alerta de C20 | Conjunto independente das posições anteriores. C18 precede C19: o recálculo obrigatório no servidor só pode ser afirmado como completo depois que a relação dos endpoints que aceitam valores do navegador estiver fechada. |
+| 12 | R17 | 9 | Alto | C105 a C112 | C53 e C54, da posição 9, e C03, da posição 3 | C107 reaproveita a limitação por origem já implementada em C03 e C54, e C109 depende da borda contratada na posição 9. C105 e C106 precedem os limites, porque a cota é decisão de Produto e o levantamento define a que funções ela se aplica. |
+| 13 | R14 | 11 | Alto | C88 a C93 | Fluxo de autenticação da posição 3 | C90 padroniza as respostas do login e da recuperação de senha entregues na posição 3, e C92 reaproveita o bloqueio de origem já disponível na borda. C89 não depende de nenhum controle e é configuração isolada de Infraestrutura, podendo ser antecipado em paralelo; a posição do risco é determinada pelos demais controles. |
+| 14 | R10 | 12 | Alto | C60 a C63 e C03 | C03, da posição 3 | Restam apenas os controles próprios do abuso da fila de entregas, já que C03 foi implementado na posição 3 justamente na forma que não indisponibiliza contas alheias, que é a exigência registrada neste risco. |
+| 15 | R03 | 15 | Médio | C12 a C17 | — | Nenhum pré-requisito técnico interno, mas depende de integração com base pública externa e de decisão de Produto sobre os documentos exigidos, o que o torna o conjunto de menor acoplamento e maior prazo externo. Pode correr em paralelo desde o início, sem alterar as demais posições. |
+| 16 | R05 | 16 | Médio | C23 a C27 | C36, da posição 8, e C66, da posição 5 | C23 é a verificação de propriedade já implementada em C36 e C101, aplicada à atualização do status da entrega. Dentro do risco, C24 precede C25, porque a regra de alerta observa exatamente as transições que a máquina de estados declara como inválidas. Posição próxima à prioridade, com esforço reduzido pelo que já existe. |
+| 17 | R15 | 17 | Médio | C94 a C99 | — | Menor prioridade do registro e nenhum controle reaproveitado por outro risco. C94 é o controle determinante e não depende de nenhum outro, de modo que a posição final não cria bloqueio para nenhuma outra. Dentro do risco, C94 e C95 precedem C97, pela mesma razão da posição anterior: o alerta observa a alteração que o congelamento do preço no pedido torna inócua. |
 
-> **Em preenchimento.** As linhas estão listadas na ordem do registro. As colunas *Ordem*, *Pré-requisito* e *Justificativa da posição* são preenchidas no fechamento da etapa, quando cada posição recebe justificativa própria segundo os cinco critérios acima.
+Quatro riscos ocupam posição melhor do que sua prioridade: **R06** e **R02**, porque entregam a base sobre a qual os demais são verificados ou testados, e **R01** e **R12**, porque contêm controles de que posições seguintes dependem. As demais posições apenas acomodam esse deslocamento e preservam a ordem relativa da seção 2.3, o que é verificável pela coluna *Prioridade*: lidas de cima para baixo, ignorando os quatro riscos antecipados, elas permanecem em ordem crescente.
+
+A consequência a registrar é que nenhum risco crítico é adiado por conveniência. R13 e R11, primeiro e segundo em prioridade, ocupam as posições 2 e 5, e as três posições que os antecedem existem porque, sem elas, a implementação dos dois seria refeita ou não poderia ser comprovada.
 
 ---
 
@@ -952,31 +957,53 @@ A estimativa observa três regras:
 2. O impacto residual raramente se altera. Os controles do plano atuam predominantemente sobre a probabilidade do evento; quando o impacto é reduzido, isso decorre de um controle que elimina ou limita o ativo atingido, e a linha indica qual controle produz esse efeito.
 3. Nenhum risco chega a zero. O residual é o risco remanescente que a plataforma decide manter, e por isso cada linha recebe uma condição de aceitação: o que precisa ser verdadeiro para que o residual seja considerado aceitável e sob qual acompanhamento ele permanece.
 
+A coluna *Nível residual* utiliza as mesmas faixas já aplicadas na seção 2.1, uma vez que a tabela de classificação permanece pendente na seção 1: pontuação de 1 a 3 é Baixo, de 4 a 6 é Médio, de 8 a 9 é Alto e de 12 a 16 é Crítico. São as faixas que reproduzem, sem exceção, os níveis atribuídos no registro inicial. Caso a seção 1 registre limiares diferentes, apenas os rótulos desta coluna mudam, e não as pontuações.
+
 | Risco | Inicial (P × I) | Nível inicial | P residual | I residual | Pontuação residual | Nível residual | Condição de aceitação |
 |---|:---:|---|:---:|:---:|:---:|---|---|
-| R01 | 3 × 3 = 9 | Alto | | | | | |
-| R02 | 2 × 3 = 6 | Médio | | | | | |
-| R03 | 2 × 3 = 6 | Médio | | | | | |
-| R04 | 3 × 3 = 9 | Alto | | | | | |
-| R05 | 2 × 3 = 6 | Médio | | | | | |
-| R06 | 2 × 3 = 6 | Médio | | | | | |
-| R07 | 3 × 4 = 12 | Crítico | | | | | |
-| R08 | 3 × 4 = 12 | Crítico | | | | | |
-| R09 | 3 × 4 = 12 | Crítico | | | | | |
-| R10 | 2 × 4 = 8 | Alto | | | | | |
-| R11 | 3 × 4 = 12 | Crítico | | | | | |
-| R12 | 2 × 4 = 8 | Alto | | | | | |
-| R13 | 4 × 4 = 16 | Crítico | | | | | |
-| R14 | 2 × 4 = 8 | Alto | | | | | |
-| R15 | 2 × 3 = 6 | Médio | | | | | |
-| R16 | 3 × 3 = 9 | Alto | | | | | |
-| R17 | 3 × 3 = 9 | Alto | | | | | |
+| R01 | 3 × 3 = 9 | Alto | 2 | 3 | 6 | Médio | Segundo fator ativo nos perfis definidos por C01 e limitação progressiva comprovada por C03, com o alerta de C06 exercitado. Aceito porque a obtenção da credencial ocorre fora da plataforma e não é eliminável por ela; permanece sob acompanhamento do volume de falhas de autenticação. |
+| R02 | 2 × 3 = 6 | Médio | 1 | 3 | 3 | Baixo | Expiração em quinze minutos e recusa do token de renovação já utilizado comprovadas por C09, com vinculação de C10 testada. Aceita-se a janela de até quinze minutos em que um token capturado ainda é válido, sob o alerta de reuso de C11. |
+| R03 | 2 × 3 = 6 | Médio | 1 | 3 | 3 | Baixo | Nenhum estabelecimento recebe pedido ou repasse antes da aprovação (C14) e a validação de CNPJ e conta de repasse de C13 é executada em todo cadastro. Aceita-se a fraude praticada com documentação legítima, que o painel de C15 acompanha por indicadores de comportamento. |
+| R04 | 3 × 3 = 9 | Alto | 1 | 3 | 3 | Baixo | Recálculo no servidor comprovado por C19 em todos os endpoints relacionados por C18. Aceita-se apenas o intervalo entre a divergência e a rejeição de C21, com o registro de C20 permitindo identificar reincidência. |
+| R05 | 2 × 3 = 6 | Médio | 1 | 3 | 3 | Baixo | Restrição ao entregador atribuído (C23) e transições declaradas em máquina de estados (C24) comprovadas por teste. Aceita-se a alteração praticada pelo próprio entregador legítimo do pedido, que permanece rastreável pelo registro de auditoria. |
+| R06 | 2 × 3 = 6 | Médio | 1 | 3 | 3 | Baixo | Registro em modo apenas de acréscimo com encadeamento verificado (C30) e conteúdo mínimo presente em amostra (C31), com a verificação diária de C33 sem lacuna. Aceita-se a contestação sobre ação praticada por credencial legítima comprometida, que é tratada por R01 e R02. |
+| R07 | 3 × 4 = 12 | Crítico | 2 | 4 | 8 | Alto | Nenhuma resposta da API devolve campo fora da tabela de C34, verificação de propriedade de C36 comprovada e alerta de volume anômalo de C39 exercitado. O impacto não se reduz: a confidencialidade perdida não é restaurável, conforme a observação da seção 3.5.2. Permanece o maior residual do registro, ao lado de R09, e exige revisão semestral do escopo de campos por perfil. |
+| R08 | 3 × 4 = 12 | Crítico | 2 | 3 | 6 | Médio | Senhas armazenadas com Argon2id (C44), nenhuma coluna do banco retendo dado de pagamento (C45) e criptografia em repouso e custódia de segredos verificadas (C46). É o caso previsto na regra 2: **C45 reduz o impacto** ao eliminar o dado armazenado, de modo que um acesso indevido ao banco não alcança mais informação de cartão. Aceito sob rotação de chaves na periodicidade de C42. |
+| R09 | 3 × 4 = 12 | Crítico | 2 | 4 | 8 | Alto | Absorção do tráfego na borda comprovada em teste de carga (C53), limites de C54 a C56 ativos e tempo de recuperação registrado no teste trimestral de restauração (C59). O impacto permanece 4 porque a indisponibilidade atinge a plataforma inteira; parte do risco é compartilhada com o serviço contratado em C51, o que não a elimina. Aceito enquanto a meta de disponibilidade de C51 for cumprida. |
+| R10 | 2 × 4 = 8 | Alto | 1 | 4 | 4 | Médio | Limite de entregas simultâneas e expiração de reserva comprovados por C60, e verificação de que C03 não bloqueia permanentemente a conta legítima. Aceita-se o abuso praticado dentro do limite por conta legítima, observado pelo alerta de acúmulo sem progresso de C61. |
+| R11 | 3 × 4 = 12 | Crítico | 1 | 4 | 4 | Médio | Toda rota administrativa coberta por teste de negação por padrão (C66), papel resolvido no servidor e token forjado recusado (C68), e alerta de concessão de privilégio ativo (C70). Aceita-se o uso indevido de privilégio concedido legitimamente, que deixa de ser R11 e passa a ser tratado por R12. |
+| R12 | 2 × 4 = 8 | Alto | 1 | 4 | 4 | Médio | Segregação de papéis em vigor (C73), papel de auditoria independente designado (C74), dupla aprovação comprovada em teste (C75) e alerta de tentativa de escrita no repositório de auditoria exercitado (C76). Aceita-se o abuso praticado dentro do papel atribuído, que a auditoria periódica de C74 detecta depois do fato, e não durante. |
+| R13 | 4 × 4 = 16 | Crítico | 1 | 4 | 4 | Médio | Inventário de consultas dinâmicas concluído (C80), nova execução da análise estática sem ocorrências (C81) e regra do pipeline bloqueando a integração de código que concatene entrada (C79). Enquanto o inventário não estiver fechado, o residual vale apenas para os pontos já convertidos, conforme registrado na [Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md#15-resultado-esperado-da-prática). O impacto permanece 4 porque uma ocorrência remanescente ainda alcança o banco, limitada pelo privilégio mínimo de C83. |
+| R14 | 2 × 4 = 8 | Alto | 1 | 4 | 4 | Médio | Verificação externa de TLS sem apontamento (C89) e respostas de login e recuperação indistinguíveis entre conta existente e inexistente (C90). Aceito porque a captura ocorre fora do alcance da plataforma: o que ela observa é a enumeração que costuma precedê-la, pelo alerta de C91. |
+| R15 | 2 × 3 = 6 | Médio | 1 | 3 | 3 | Baixo | Preço gravado no pedido no momento da confirmação (C94), cardápio versionado com autoria e valor anterior (C95) e avaliação vinculada a pedido entregue (C96). Aceita-se a alteração de preço para pedidos futuros, que é operação legítima do estabelecimento. |
+| R16 | 3 × 3 = 9 | Alto | 2 | 3 | 6 | Médio | Matriz de perfil por escopo publicada e comparada às rotas expostas (C100) e verificação de propriedade nas operações de gerenciamento comprovada (C101). A probabilidade não chega a 1 porque C102 depende de verificação de identidade conduzida pelo Suporte, procedimento manual e sujeito a falha; permanece sob o alerta de acesso fora do escopo de C103. |
+| R17 | 3 × 3 = 9 | Alto | 2 | 2 | 4 | Médio | Cotas definidas por perfil (C105), limites de envio e de upload comprovados por teste (C107 e C108) e imagens servidas pelo domínio da CDN (C109). É o segundo caso previsto na regra 2: **C109 reduz o impacto** ao deslocar o consumo do servidor da aplicação para o serviço contratado. Aceito sob acompanhamento mensal do consumo previsto em C105. |
 
-> **Em preenchimento.** As colunas de probabilidade, impacto, pontuação e nível residuais e a condição de aceitação são preenchidas no fechamento da etapa. A coluna *Nível residual* depende da tabela de classificação do nível, pendente na seção 1, e será preenchida com os mesmos limiares ali definidos.
+A distribuição esperada, caso o plano seja integralmente implementado, é de seis riscos em nível Baixo, nove em Médio e dois em Alto, sem nenhum risco Crítico remanescente. Os dois que permanecem em Alto são **R07** e **R09**, e a razão é a mesma nos dois casos: o impacto não se reduz. A exposição de dados pessoais é irreversível depois de ocorrida, e a indisponibilidade atinge a plataforma inteira independentemente da causa. Nos dois, o plano atua sobre a probabilidade, e é isso que a estimativa registra.
+
+O impacto é reduzido em apenas dois riscos, **R08** e **R17**, e em ambos por um controle que elimina ou desloca o ativo atingido — C45, que remove o dado de pagamento do banco, e C109, que transfere o armazenamento das imagens para serviço externo. Nos quinze restantes, o impacto residual é igual ao inicial, o que é coerente com a regra 2 e com a natureza dos controles propostos.
+
+Nenhuma linha desta seção é evidência de redução obtida. Todas as condições de aceitação são redigidas como verificações a executar, e cada uma remete à evidência já definida na seção 3.5.2 para o controle correspondente. Enquanto essas evidências não existirem, o risco vigente é o da seção 2.1, e a reavaliação registrada aqui permanece sendo o que a seção declara desde a abertura: uma estimativa.
 
 ---
 
-## 4. Distribuição Integrante X Responsabilidades
+## 4. Considerações Finais
+
+A etapa parte das 36 ameaças e dos casos de abuso da Etapa 1 e chega a 112 controles com responsável e evidência definidos. Entre um ponto e outro, quatro decisões determinam o resultado e merecem registro.
+
+**A cobertura foi verificada, e não presumida.** A revisão da seção 2.1 constatou que dez ameaças da Etapa 1 não haviam originado risco algum, entre elas a injeção de comandos SQL. Os cinco riscos acrescentados a partir dessa verificação incluem R13, que veio a ser o de maior pontuação do registro e o único tratado com a estratégia *Evitar*. Se a cobertura não tivesse sido conferida, o risco mais grave da plataforma teria ficado de fora do plano.
+
+**As funções do NIST descrevem resultados, e não medidas.** A matriz da seção 3.4 marca apenas as funções que o tratamento de cada risco efetivamente alcança, e a seção 3.5.3 confirma que toda função marcada tem controle correspondente e que nenhum controle invoca função não marcada. As ausências são justificadas caso a caso: R06 não tem *Respond* porque um registro que não foi gerado não pode ser reconstituído, e R07 tem *Recover* limitado porque confidencialidade perdida não se restaura. Marcar as seis funções em todos os riscos produziria uma matriz completa e falsa.
+
+**Prioridade e ordem de execução respondem a perguntas diferentes.** A seção 2.3 ordena por gravidade; a seção 3.6, por sequência de implementação. As duas não coincidem, e a divergência é o próprio resultado: o registro de auditoria, décimo terceiro em prioridade, ocupa a primeira posição porque é o que torna verificável todo o restante, e a sessão, décima quarta, é antecipada porque alterá-la depois obrigaria a refazer a autorização. Nenhum risco crítico foi adiado por conveniência — os dois primeiros em prioridade ocupam as posições 2 e 5, e o que os antecede existe para que a implementação deles não seja refeita.
+
+**Nada nesta etapa é evidência de risco reduzido.** Nenhum controle está implementado. A seção 3.7 é estimativa declarada, cada linha traz a condição que precisaria ser verdadeira para que o residual fosse aceitável, e o risco vigente continua sendo o da seção 2.1. A estimativa aponta para dois riscos permanecendo em nível Alto mesmo com o plano inteiro executado — R07 e R09 —, porque neles o impacto não se reduz, apenas a probabilidade.
+
+O que a etapa entrega às seguintes é a cadeia rastreável entre ameaça, risco, estratégia, função e controle. A [Etapa 3](./etapa-3-arquitetura-segura.md) posiciona os controles em componentes e zonas de confiança, a [Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md) implementa e testa dois deles em código, e a [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md) organiza os controles de função *Detect* em eventos e regras. Em todas elas, o identificador do controle é o que mantém a ligação com este documento.
+
+---
+
+## 5. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
 |------------|-------------------|

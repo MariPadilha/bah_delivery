@@ -9,7 +9,8 @@ Esta etapa visa transformar os riscos e controles definidos na [Etapa 2 — Aval
 1. [Requisitos de Segurança](#1-requisitos-de-segurança)
 2. [Diagrama da Arquitetura Segura](#2-diagrama-da-arquitetura-segura)
 3. [Decisões de Arquitetura](#3-decisões-de-arquitetura)
-4. [Distribuição Integrante X Responsabilidades](#4-distribuição-integrante-x-responsabilidades)
+4. [Considerações Finais](#4-considerações-finais)
+5. [Distribuição Integrante X Responsabilidades](#5-distribuição-integrante-x-responsabilidades)
 
 ---
 
@@ -109,7 +110,7 @@ As decisões abaixo registram como o Bah Delivery seria organizado para atender 
 |---|---|---|---|---|
 | DA01 | Concentrar autenticação, segundo fator e limitação de tentativas em um único serviço de autenticação, com limitação progressiva em vez de bloqueio permanente | R01 (e R10) | RS01 | C01, C02, C03, C06 |
 | DA02 | Restringir todo acesso ao banco a uma camada de acesso a dados que expõe apenas consultas parametrizadas, com a proibição de concatenação imposta pelo pipeline | R13 (e I06) | RS02 | C79, C80, C81, C82, C83, C84 |
-| DA03 | [A definir pelo integrante 6, junto com a consolidação da etapa] | [RXX] | RS03 | [CXX] |
+| DA03 | Concentrar a autorização em um ponto único de decisão no servidor, com negação por padrão, papel resolvido na conta armazenada e verificação de propriedade do recurso além do papel | R11 (e R16) | RS03 | C66, C67, C68, C69, C100, C101 |
 
 ---
 
@@ -145,19 +146,53 @@ As decisões abaixo registram como o Bah Delivery seria organizado para atender 
 
 ---
 
-### 3.4. DA03
+### 3.4. DA03 - Autorização como ponto único de decisão no servidor, com negação por padrão
 
-> **Em preenchimento.** Decisão a cargo do integrante 6, junto com a consolidação da etapa. Segue o mesmo formato das anteriores: problema ou risco tratado, decisão tomada, motivo, componente afetado e resultado esperado, com a linha correspondente do resumo em 3.1 preenchida.
+**Problema ou risco tratado.** R11, classificado como crítico e segundo em prioridade no registro, derivado das ameaças E01, E02 e E03. As três descrevem a mesma condição por caminhos diferentes: a autorização é decidida fora do servidor. Em E01 a restrição existe apenas na interface e as rotas de gerenciamento não verificam o papel; em E02 o perfil chega como campo da requisição e é gravado sem validação; em E03 o token carrega o perfil e é aceito sem verificação adequada da assinatura. O requisito RS03 exige que o servidor seja a única autoridade sobre a autorização. A decisão trata também R16 na parte em que o papel correto não basta, porque um perfil legítimo pode alcançar registro de outro titular.
+
+**Decisão tomada.** A autorização passa a ser um ponto único de decisão, atravessado por toda requisição depois da autenticação e antes de qualquer leitura ou escrita, e nenhuma rota decide por conta própria. A política é declarada como matriz de perfil por operação (**C100**), lida pela função de autorização, de modo que a permissão é dado versionado e não código espalhado. A negação é o padrão: operação não declarada na matriz é recusada, e uma rota nova nasce inacessível até que sua entrada exista (**C66**). O papel usado na decisão é resolvido no repositório de contas a cada requisição, nunca lido do token nem aceito como campo do corpo (**C67**, **C68**), e o token é verificado com segredo mantido em gerenciador e algoritmo fixado no servidor. Além do papel, a decisão verifica que o recurso pertence a quem o solicita (**C101**). Alteração de permissões exige nova autenticação e gera registro de auditoria (**C69**). A interface web continua ocultando as opções indisponíveis, mas essa ocultação é conveniência de uso, e não controle de acesso.
+
+**Motivo.** Quatro razões sustentam a decisão:
+
+1. Verificação espalhada por rota não é verificável. Se cada endpoint repetir a checagem, a pergunta "quais operações o perfil restaurante pode executar" só é respondida lendo o código inteiro, e a rota escrita amanhã fica exposta por esquecimento, e não por decisão. Com a matriz e a negação por padrão, o esquecimento produz recusa, que é o modo seguro de falhar.
+2. O papel lido do token é dado transportado pelo cliente. A assinatura prova a origem do token, mas não sua atualidade: um privilégio revogado continuaria válido até a expiração, e a revogação em cadeia prevista em C71 não teria efeito imediato. Resolver o papel na conta armazenada a cada requisição é o que torna a revogação instantânea e recusa o token forjado descrito em E03.
+3. Aceitar o perfil como campo da requisição transforma o cadastro em concessão de privilégio, que é exatamente E02 e a fraqueza CWE-915. Copiar apenas os campos declarados e fixar o perfil de menor privilégio elimina a condição, em vez de filtrá-la.
+4. O papel correto não delimita o escopo. Um estabelecimento legítimo que altera o produto de outro atravessa qualquer verificação de papel, porque ele de fato é um restaurante. É a razão de a decisão incluir C101, e é o ponto em que R11 encosta em R16 e em R07: sem a verificação de propriedade, a autorização responde "quem é você" e deixa sem resposta "isto é seu".
+
+**Componente afetado.** Regras de autorização, que passam a ser o ponto único de decisão da zona de aplicação e o detentor da matriz de permissões; serviço de autenticação, que emite sessão sem embutir papel na decisão; repositório de contas, consultado a cada requisição para resolver o papel vigente; API REST, cujas rotas passam a declarar a operação que executam em vez de verificar permissão por conta própria; interface web, que deixa de ser ponto de restrição; e zona de auditoria, que recebe as recusas e toda alteração de permissão.
+
+**Resultado esperado.** Os três critérios de verificação de RS03 tornam-se observáveis em um só componente: a rota administrativa invocada por conta de cliente é recusada, o campo de perfil enviado na requisição não produz efeito e o token com assinatura inválida ou algoritmo alterado é rejeitado antes de qualquer verificação de permissão. A implementação e os testes correspondentes estão na [prática 2 da Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md#2-prática-2-autorização-no-servidor), exercitada por TS03 e TS04. Como efeito secundário, toda recusa passa a ser registrada com rota, perfil resolvido e recurso solicitado, o que produz o evento previsto na [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md#33-relação-dos-eventos) e permite distinguir a recusa isolada, que é o sistema funcionando, da sequência de recusas contra rotas administrativas, que é tentativa de elevação em curso.
 
 ---
 
-## 4. Distribuição Integrante X Responsabilidades
+## 4. Considerações Finais
+
+A etapa converte os riscos da [Etapa 2](./etapa-2-riscos-nist.md) em três requisitos verificáveis, um diagrama por zonas de confiança e três decisões de arquitetura. O que a mantém coerente é a cadeia de identificadores: cada requisito nasce de uma ameaça da Etapa 1 e de um risco do registro, cada decisão referencia os controles já aprovados no plano de tratamento, e nenhuma medida nova foi introduzida aqui.
+
+| Requisito | Risco | Ameaças | Vulnerabilidade catalogada | Decisão | Componente do diagrama | Implementação na Etapa 4 |
+|---|---|---|---|---|---|---|
+| RS01 | R01 | S01 | CWE-307 | DA01 | Serviço de autenticação | — |
+| RS02 | R13 | T05, I06 | CWE-89 | DA02 | Validação e acesso a dados | Prática 1 (TS01, TS02) |
+| RS03 | R11 (e R16) | E01, E02, E03 | CWE-862, CWE-915, CWE-347 | DA03 | Regras de autorização | Prática 2 (TS03, TS04) |
+
+Três observações fecham a etapa.
+
+**As zonas de confiança foram escolhidas no lugar das camadas funcionais.** A divisão por camadas descreveria como o sistema funciona; a divisão por zonas descreve onde ele deixa de confiar em quem envia a requisição. É por isso que a interface web aparece na zona não confiável junto do usuário, ainda que seja software da própria plataforma: o que ela oculta é conveniência, e a decisão acontece depois da travessia.
+
+**As três decisões repetem um mesmo padrão.** Em DA01, DA02 e DA03 a medida é concentrar em um ponto único aquilo que estava distribuído — a autenticação em um serviço, o acesso ao banco em uma camada, a autorização em uma função. O motivo é o mesmo nos três casos: uma propriedade de segurança só é verificável quando existe um lugar onde ela pode ser observada, e só é sustentável quando o esquecimento produz recusa em vez de exposição.
+
+**A arquitetura é projeto, e não implantação.** O Bah Delivery não está implementado. O diagrama e as decisões descrevem como a plataforma seria organizada para atender aos requisitos, e a verificação de cada critério depende das evidências previstas nos controles da Etapa 2. A [Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md) leva duas dessas decisões ao código, com os testes escritos antes da implementação, e é o ponto em que os critérios de RS02 e RS03 deixam de ser afirmação e passam a ser teste executável.
+
+---
+
+## 5. Distribuição Integrante X Responsabilidades
 
 | Integrante | Responsabilidades |
 |------------|-------------------|
 | Arthur Medeiros | Definir requisito de segurança e sua respectiva vulnerabilidade catalogada. |
-| Emanuel Ferreira | Definir decisões de arquitetura. |
+| Emanuel Ferreira | Definir a decisão de arquitetura DA03 e consolidar a etapa. |
 | Guilherme Mundt | Modelar diagrama de arquitetura segura. |
 | Lívia Barbosa | Definir requisito de segurança e sua respectiva vulnerabilidade catalogada. |
 | Mariana Padilha | Definir requisito de segurança e sua respectiva vulnerabilidade catalogada. |
+| Matheus Ciocca | Definir as decisões de arquitetura DA01 e DA02. |
 | Matheus Ciocca | Definir decisões de arquitetura. |

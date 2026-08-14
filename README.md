@@ -13,9 +13,9 @@ O sistema não é implementado: o objetivo do trabalho é analisar sua seguranç
 | Etapa | Conteúdo | Documento | Situação |
 |---|---|---|---|
 | 1 | Casos de abuso e modelagem de ameaças com STRIDE | [docs/etapa-1-ameacas-stride.md](./docs/etapa-1-ameacas-stride.md) | Concluída |
-| 2 | Análise, priorização e tratamento de riscos com o NIST CSF | [docs/etapa-2-riscos-nist.md](./docs/etapa-2-riscos-nist.md) | Em andamento — restam a ordem de implementação e o risco residual |
-| 3 | Projeto de uma arquitetura segura | [docs/etapa-3-arquitetura-segura.md](./docs/etapa-3-arquitetura-segura.md) | Em andamento — restam as decisões de arquitetura |
-| 4 | Código seguro e testes de segurança | [docs/etapa-4-codigo-seguro-e-testes-seguranca.md](./docs/etapa-4-codigo-seguro-e-testes-seguranca.md) | Em andamento — restam os resultados esperados e as referências OWASP |
+| 2 | Análise, priorização e tratamento de riscos com o NIST CSF | [docs/etapa-2-riscos-nist.md](./docs/etapa-2-riscos-nist.md) | Concluída |
+| 3 | Projeto de uma arquitetura segura | [docs/etapa-3-arquitetura-segura.md](./docs/etapa-3-arquitetura-segura.md) | Concluída |
+| 4 | Código seguro e testes de segurança | [docs/etapa-4-codigo-seguro-e-testes-seguranca.md](./docs/etapa-4-codigo-seguro-e-testes-seguranca.md) | Concluída |
 | 5 | Verificação de vulnerabilidades | — | Pendente |
 | 6 | Monitoramento e detecção de intrusões | — | Pendente |
 | 7 | DevSecOps e vídeo final | — | Pendente |

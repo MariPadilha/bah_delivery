@@ -514,9 +514,48 @@ def rota_dados_do_cliente(requisicao):
 
 ### 2.5 Resultado esperado da prática
 
+O resultado da prática é verificável pelos três critérios que RS03 estabelece: rota administrativa invocada por conta sem privilégio é recusada, o campo de perfil enviado na requisição é ignorado, e token com assinatura inválida ou algoritmo alterado é rejeitado. Cada critério corresponde a uma das ameaças de origem, e nenhum deles depende da interface: os três são decididos no servidor, em `autorizar` e em `resolver_usuario_autenticado`.
+
+| Situação | Comportamento esperado | Camada que o produz | Teste que o evidencia |
+|---|---|---|---|
+| Cliente consulta o próprio registro | Acesso concedido: a operação consta da matriz do perfil e o campo `cliente_id` do recurso corresponde ao usuário autenticado | C100 e C101 | TS03 |
+| Cliente invoca operação administrativa | Recusa com `PermissionError` e mensagem genérica, antes de qualquer leitura ou escrita, com registro `acesso_negado` e motivo `operacao_fora_do_perfil` | C66 | TS04 |
+| Cliente autenticado solicita registro de outro cliente | Recusa pelo mesmo caminho, com motivo `recurso_fora_do_escopo`: o perfil está correto, mas o recurso não lhe pertence | C101 | `pertence_ao_usuario`, observação da §2.4 |
+| Cadastro enviando `"perfil": "administrador"` no corpo | O campo é descartado por `cadastrar_usuario`, e a conta nasce com o perfil `cliente` | C67 | Observação da §2.4 |
+| Token forjado, expirado ou com algoritmo alterado | Recusa em `resolver_usuario_autenticado`, antes de qualquer verificação de permissão, porque o algoritmo é fixado no servidor e o perfil vem de `repositorio_de_contas` | C68 | Observação da §2.4 |
+| Operação nova exposta pela API sem entrada na matriz | Recusa por ausência: nenhum perfil a possui, e a negação por padrão a torna inacessível até que a matriz seja atualizada | C66 | TS04, pelo mesmo caminho |
+
+A última linha é a que sustenta o resultado ao longo do tempo. Se a autorização fosse escrita rota a rota, a rota acrescentada amanhã ficaria exposta por esquecimento, e o comportamento seguro dependeria de alguém lembrar de verificar. Com a matriz declarada em um único lugar e a negação por padrão em `autorizar`, o esquecimento produz recusa, e não exposição. É a mesma inversão que a [decisão DA03](./etapa-3-arquitetura-segura.md#34-da03---autorização-como-ponto-único-de-decisão-no-servidor-com-negação-por-padrão) registra na Etapa 3.
+
+A terceira linha é a que liga esta prática a R16. O perfil correto responde "quem é você" e não responde "isto é seu": um restaurante legítimo que altera o produto de outro atravessa qualquer verificação de papel. Por isso a condição de escopo acompanha cada operação da matriz, e `pertence_ao_usuario` é chamada mesmo quando o perfil já foi aceito.
+
+Quanto às ameaças de origem, E01 deixa de ter caminho porque a interface não é mais ponto de restrição e a rota só executa depois que `autorizar` concedeu; E02 deixa de existir porque o perfil não é aceito como campo, e sim fixado no cadastro; e E03 perde efeito porque o papel usado na decisão é lido da conta armazenada, de modo que alterar o perfil dentro do token não muda o resultado, e o token com assinatura inválida é recusado antes.
+
+Três limites permanecem, e registrá-los faz parte do resultado:
+
+1. **A prática cobre as operações declaradas na matriz, e não a API inteira.** A afirmação de que R11 foi tratado só se estende às demais rotas depois que o inventário de permissões previsto em C65 e a matriz completa prevista em C100 estiverem concluídos, conforme a posição 5 da [ordem de implementação](./etapa-2-riscos-nist.md#36-ordem-de-implementação-dos-controles).
+2. **Dois dos três critérios de RS03 não são exercitados por TS03 e TS04.** Os testes cobrem a negação por padrão; o descarte do campo de perfil (C67) e a recusa do token forjado (C68) são observáveis apenas pela leitura do código da §2.4. A evidência prevista no plano de tratamento exige testes próprios para os dois, e eles ainda não foram escritos.
+3. **C69 e C70 não se realizam neste código.** A exigência de nova autenticação em alteração de permissões é fluxo administrativo completo, e o alerta de concessão de privilégio é regra de detecção, tratada na [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md). O que este código entrega para ela é o registro `acesso_negado`, com rota, perfil resolvido e motivo.
+
+Como o Bah Delivery não está implementado, o resultado descrito nesta seção é o comportamento esperado da prática, e não redução de risco já obtida. A [estimativa de risco residual da Etapa 2](./etapa-2-riscos-nist.md#37-risco-residual-esperado) mantém R11 em nível Médio mesmo com o plano executado, e a condição de aceitação ali registrada é exatamente a desta prática: toda rota administrativa coberta por teste de negação por padrão e papel resolvido no servidor.
+
 ---
 
 ### 2.6 Referências OWASP
+
+| Referência | Trecho utilizado | Onde se materializa nesta prática |
+|---|---|---|
+| OWASP Top 10 2021, [A01:2021 Broken Access Control](https://owasp.org/Top10/A01_2021-Broken_Access_Control/) | A categoria em que E01, E02 e E03 se enquadram, e as orientações de negar por padrão e de aplicar o controle de acesso em código confiável do servidor, e não no cliente | Justifica a escolha da prática e a estrutura de `autorizar` como ponto único de decisão |
+| [Authorization Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html) | *Enforce Least Privileges*, *Deny by Default* e a recomendação de validar a permissão em toda requisição, em vez de confiar em decisão tomada uma única vez | Negação por padrão na consulta à `MATRIZ_DE_AUTORIZACAO` e chamada de `autorizar` antes de cada operação protegida (C66) |
+| [Insecure Direct Object Reference Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html) | Verificação de que o registro solicitado pertence ao usuário autenticado, e não apenas de que ele tem o papel adequado | `pertence_ao_usuario` e o mapa `DONO_DO_RECURSO` (C101), que tratam também R16 |
+| [Mass Assignment Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html) | Uso de lista de campos aceitos na criação de registros, impedindo que atributos sensíveis sejam definidos pela requisição | `campos_aceitos` em `cadastrar_usuario`, com o perfil fixado no servidor (C67), correspondente a E02 |
+| [JSON Web Token for Java Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html) | Fixação do algoritmo aceito no servidor, recusa de token cuja assinatura não seja verificada e uso de segredo forte sob custódia | `ALGORITMO_DE_ASSINATURA`, a lista `algoritmos_aceitos` e o segredo obtido do gerenciador em `resolver_usuario_autenticado` (C68), correspondente a E03 |
+| OWASP ASVS 4.0.3, V4.1.1 | "Verify that the application enforces access control rules on a trusted service layer, especially if client-side access control is present and could be bypassed" | Decisão tomada em `autorizar`, no servidor, com a interface mantida apenas como ocultação de opções |
+| OWASP ASVS 4.0.3, V4.1.3 e V4.1.5 | Princípio do menor privilégio por função e recurso, e exigência de que o controle de acesso falhe de modo seguro, inclusive diante de exceção | Condição de escopo por operação na matriz e recusa em qualquer caminho não previsto, inclusive condição desconhecida em `pertence_ao_usuario` |
+| OWASP ASVS 4.0.3, V4.2.1 | "Verify that sensitive data and APIs are protected against Insecure Direct Object Reference (IDOR) attacks targeting creation, reading, updating and deletion of records" | Requisito verificável correspondente a C101, e o critério que a terceira linha da tabela de §2.5 exercita |
+| OWASP ASVS 4.0.3, V5.1.2 | Proteção contra atribuição em massa de parâmetros, por marcação de campos ou contramedida equivalente | Cópia apenas dos campos declarados em `cadastrar_usuario` |
+
+As vulnerabilidades catalogadas correspondentes — CWE-862 para a rota que não verifica o papel, CWE-915 para o perfil gravado a partir da requisição e CWE-347 para o token aceito sem verificação da assinatura — estão registradas na [Etapa 3](./etapa-3-arquitetura-segura.md#12-vulnerabilidade-catalogada-correspondente), uma para cada ameaça de origem. É o que mantém a cadeia entre as ameaças E01, E02 e E03, o risco R11, o requisito RS03, a decisão DA03 e a implementação desta seção.
 
 ---
 
