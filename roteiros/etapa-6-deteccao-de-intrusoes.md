@@ -117,7 +117,7 @@ As regras da seção anterior terminam onde esta seção começa: no momento em 
 
 ### 5.1. Triagem: a primeira pergunta não é a gravidade
 
-Antes de perguntar quanto um alerta é grave, é preciso perguntar se ele é verdadeiro. A análise da [Etapa 5](../docs/etapa-5.md#limitações-e-possíveis-falsos-positivos) mostrou isso na prática: dos três achados examinados, um estava correto mas se referia a um endereço fora do alvo, e outro foi levantado pela própria ferramenta com confiança baixa. Uma regra de detecção tem o mesmo comportamento — ela observa um padrão, não uma intenção.
+Antes de perguntar quanto um alerta é grave, é preciso perguntar se ele é verdadeiro. A análise da [Etapa 5](../docs/etapa-5-verificacao-de-vulnerabilidades.md#limitações-e-possíveis-falsos-positivos) mostrou isso na prática: dos três achados examinados, um estava correto mas se referia a um endereço fora do alvo, e outro foi levantado pela própria ferramenta com confiança baixa. Uma regra de detecção tem o mesmo comportamento — ela observa um padrão, não uma intenção.
 
 Todo alerta chega acompanhado de quatro informações, que vêm dos eventos da seção 3 e sem as quais a triagem não é possível: a regra que disparou, os eventos que a satisfizeram, a conta e a origem envolvidas, e a resposta inicial já definida para aquela regra. A triagem tem três desfechos possíveis:
 

@@ -91,6 +91,93 @@ http://juice-shop:3000
 
 ### 5. Resultados
 
+Foram selecionados três achados do conjunto descrito na seção 3, um por integrante responsável. A tabela abaixo segue o formato sugerido no enunciado e reúne, para cada achado, a evidência que o sustenta, a consequência possível, a categoria a que pertence e a medida proposta. O detalhamento de cada linha vem nas subseções seguintes.
+
+| ID | Alerta ou achado | Evidência | Possível impacto | Relação com OWASP ou CWE | Correção proposta |
+|---|---|---|---|---|---|
+| A01 | *Em preenchimento, integrante 1* | | | | |
+| A02 | *Em preenchimento, integrante 3* | | | | |
+| A03 | **CSP: Failure to Define Directive with No Fallback.** O cabeçalho `Content-Security-Policy` da resposta não declara diretivas que não herdam de `default-src`. Risco **Médio** e confiança **Alta** atribuídos pelo ZAP; scanner passivo 10055, referência 10055-13 | `A03.png`, com `Parameter: Content-Security-Policy` e `Other Info: The directive(s): frame-ancestors is/are among the directives that do not fallback to default-src`. A URL do alerta é externa ao alvo, conforme a subseção 5.3.1. A mesma condição no alvo está em `A02.png`: a resposta de `http://juice-shop:3000/profile` traz `Content-Security-Policy: img-src 'self' /assets/public/images/uploads/default.svg; script-src 'self' 'unsafe-eval'`, sem `frame-ancestors`, `form-action`, `base-uri` nem `default-src` | Sem `frame-ancestors`, a página pode ser embutida por terceiro e usada para induzir cliques em ações autenticadas. Sem `form-action`, uma injeção de HTML redireciona a submissão de um formulário para servidor do atacante. Sem `default-src`, tudo o que não foi listado permanece irrestrito, de modo que a política deixa de valer como malha de fundo | CWE-693 (*Protection Mechanism Failure*), atribuída pelo ZAP, e CWE-1021 (*Improper Restriction of Rendered UI Layers or Frames*) para o efeito de enquadramento; WASC-15; A05:2021 – *Security Misconfiguration* | Declarar `default-src` e, explicitamente, `frame-ancestors`, `form-action`, `base-uri` e `object-src`; remover `'unsafe-eval'` de `script-src`; manter `X-Frame-Options` como defesa em profundidade; publicar primeiro em `Content-Security-Policy-Report-Only` e reexecutar a varredura com o escopo restrito ao alvo |
+
+#### 5.1. A01 — Off-site Redirect
+
+> **Em preenchimento.** Integrante 1.
+
+#### 5.2. A02 — Absence of Anti-CSRF Tokens
+
+> **Em preenchimento.** Integrante 3.
+
+#### 5.3. A03 — CSP: Failure to Define Directive with No Fallback
+
+**O que a ferramenta apontou.** O scanner passivo 10055 verifica se a política de segurança de conteúdo declara as diretivas que não herdam de `default-src`. Quando uma delas não é declarada, não há restrição alguma para o recurso correspondente, e é isso que a descrição do alerta resume: *"Missing/excluding them is the same as allowing anything"*. O ZAP classificou o achado como risco Médio com confiança Alta, e a confiança é alta porque a regra é objetiva — ela lê o cabeçalho devolvido e verifica a presença de um nome de diretiva, sem inferência sobre comportamento da aplicação.
+
+##### 5.3.1. O alerta capturado está fora do alvo
+
+A URL registrada no alerta é `https://www.reddit.com/r/owasp_juiceshop/`, host de terceiro que o client spider alcançou pelos links externos da aplicação, conforme já registrado na [seção 3.1](#31-delimitação-do-escopo). Pelo critério ali estabelecido, o alerta é descartado como resultado sobre o alvo.
+
+O descarte é de contexto, e não de regra. A leitura do cabeçalho está correta e o alerta é verdadeiro a respeito do site que o devolveu; o que ele não é, é resultado desta verificação. Um achado sobre a configuração de outro site não descreve a aplicação analisada, e contá-lo seria atribuir ao alvo uma propriedade que não foi observada nele.
+
+##### 5.3.2. A mesma condição é verificável no alvo, com a evidência já produzida
+
+O descarte da URL não encerra o achado, porque a mesma regra aparece sete vezes na árvore de alertas da sessão, e a resposta do próprio alvo capturada em `A02.png` permite verificar a condição diretamente. O Juice Shop devolve, em `http://juice-shop:3000/profile`:
+
+```text
+Content-Security-Policy: img-src 'self' /assets/public/images/uploads/default.svg; script-src 'self' 'unsafe-eval'
+```
+
+A comparação entre os dois cabeçalhos mostra que a condição apontada pelo alerta não apenas existe no alvo, como é mais extensa nele:
+
+| Diretiva que não herda de `default-src` | `www.reddit.com` (A03, fora do alvo) | `juice-shop:3000` (A02, no alvo) |
+|---|---|---|
+| `frame-ancestors` | Ausente — é a diretiva citada pelo alerta | Ausente |
+| `form-action` | Presente, com `'self'` | Ausente |
+| `base-uri` | Ausente | Ausente |
+| `default-src`, que serve de malha de fundo às demais | Presente, com `'none'` | Ausente |
+
+No host externo, a política declara `default-src 'none'` e falha em uma única diretiva. No alvo, não há malha de fundo alguma: as duas únicas diretivas declaradas são `img-src` e `script-src`, de modo que conexões, fontes, objetos, quadros e destino de formulário permanecem irrestritos, e `script-src` ainda admite `'unsafe-eval'`.
+
+##### 5.3.3. Possível impacto
+
+**Enquadramento em página de terceiro.** Sem `frame-ancestors`, nada na política impede que a aplicação seja carregada dentro de um quadro em site controlado por atacante, que sobrepõe elementos para induzir o usuário autenticado a acionar uma ação que ele não pretendia. No alvo o efeito está atenuado, porque a mesma resposta traz `X-Frame-Options: SAMEORIGIN` — atenuação parcial, e não equivalente: o cabeçalho legado não admite lista de origens permitidas e é o mecanismo que `frame-ancestors` substitui.
+
+**Desvio da submissão de formulário.** Sem `form-action`, o destino de um `<form>` não é restringido pela política. Se houver injeção de HTML em qualquer página, o atributo `action` pode apontar para servidor externo, e a submissão — inclusive de credenciais — parte do navegador da vítima para o atacante. O ponto é concreto na página em que o alerta foi observado: `A02.png` mostra que `/profile` contém um formulário de upload com `method="post"`.
+
+**Ausência de restrição residual.** Sem `default-src`, a política não tem comportamento padrão para o que não foi declarado, e `base-uri` ausente permite que uma injeção reescreva a base das URLs relativas da página. Somado ao `'unsafe-eval'` em `script-src` — que a própria sessão registrou em alerta separado —, o resultado é uma política que existe no cabeçalho mas cobre pouco do que deveria cobrir.
+
+##### 5.3.4. O que o achado diz sobre o Bah Delivery
+
+Nada diretamente, e o registro dessa ausência é parte da análise. A modelagem da [Etapa 1](./etapa-1-ameacas-stride.md) não contém ameaça de enquadramento ou de execução de conteúdo no navegador, e nenhum dos controles do [plano de tratamento da Etapa 2](./etapa-2-riscos-nist.md#352-planos-por-risco) trata de cabeçalhos de resposta: o mais próximo é **C89**, que exige TLS e transporte estrito para o risco R14, e cuida do trânsito, não da renderização.
+
+A observação fica registrada aqui como lacuna percebida pela ferramenta, e não como alteração do registro de riscos, pela razão dada na seção de limitações — a aplicação analisada não é o Bah Delivery, e um achado obtido no laboratório não é evidência sobre a plataforma modelada. O que ele oferece é a pergunta que a [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md#54-encerramento-e-realimentação) formaliza no encerramento de um alerta: existia controle que deveria ter impedido? Neste caso não existia, e é esse tipo de resposta que realimenta as etapas anteriores.
+
+##### 5.3.5. Correção proposta
+
+A correção é de configuração, aplicada no servidor de aplicação ou na borda, e consiste em declarar explicitamente as diretivas que não herdam:
+
+```text
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self';
+  style-src 'self';
+  img-src 'self' data:;
+  connect-src 'self';
+  object-src 'none';
+  base-uri 'none';
+  form-action 'self';
+  frame-ancestors 'none';
+```
+
+Três observações acompanham a medida:
+
+1. **`'unsafe-eval'` sai de `script-src`.** Mantê-lo preserva justamente a construção que a política existe para bloquear, e a diretiva passa a declarar uma restrição que não restringe.
+2. **`X-Frame-Options` permanece.** Não porque seja suficiente, mas porque é o que responde em navegador que não implemente `frame-ancestors`. A política nova é o controle; o cabeçalho legado é a defesa em profundidade.
+3. **A publicação é gradual.** A política entra primeiro como `Content-Security-Policy-Report-Only`, com coleta das violações relatadas, e só depois passa a bloquear. Política restritiva aplicada de uma vez quebra funcionalidade legítima, e o desfecho previsível é o afrouxamento apressado para `'unsafe-inline'`, que anula o ganho.
+
+A verificação do resultado repete a sessão com o alvo incluído em contexto e a varredura restrita a ele, conforme a correção de configuração já prevista na seção 3.1. É a mesma execução que confirmaria, sem depender da inferência feita em 5.3.2, quais das sete instâncias da regra pertencem a `http://juice-shop:3000`.
+
+##### 5.3.6. Limitações desta análise
+
+O achado é de origem passiva e nenhuma tentativa de enquadramento ou de desvio de formulário foi executada — o que está demonstrado é a ausência das diretivas no cabeçalho, não a exploração dela. A relação estabelecida em 5.3.2 entre a regra e o alvo apoia-se na leitura do cabeçalho capturado em `A02.png`, e não na lista de URLs de cada uma das sete instâncias do alerta, que a captura disponível não detalha. E o impacto descrito em 5.3.3 é condicional: o desvio de submissão pressupõe uma injeção de HTML que esta sessão não verificou existir.
 
 ---
 
