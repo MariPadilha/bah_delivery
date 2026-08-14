@@ -16,9 +16,9 @@ O sistema não é implementado: o objetivo do trabalho é analisar sua seguranç
 | 2 | Análise, priorização e tratamento de riscos com o NIST CSF | [docs/etapa-2-riscos-nist.md](./docs/etapa-2-riscos-nist.md) | Concluída |
 | 3 | Projeto de uma arquitetura segura | [docs/etapa-3-arquitetura-segura.md](./docs/etapa-3-arquitetura-segura.md) | Concluída |
 | 4 | Código seguro e testes de segurança | [docs/etapa-4-codigo-seguro-e-testes-seguranca.md](./docs/etapa-4-codigo-seguro-e-testes-seguranca.md) | Concluída |
-| 5 | Verificação de vulnerabilidades | — | Pendente |
-| 6 | Monitoramento e detecção de intrusões | — | Pendente |
-| 7 | DevSecOps e vídeo final | — | Pendente |
+| 5 | Verificação de vulnerabilidades | [docs/etapa-5-verificacao-de-vulnerabilidades.md](./docs/etapa-5-verificacao-de-vulnerabilidades.md) | Concluída |
+| 6 | Monitoramento e detecção de intrusões | [roteiros/etapa-6-deteccao-de-intrusoes.md](./roteiros/etapa-6-deteccao-de-intrusoes.md) | Concluída |
+| 7 | DevSecOps e vídeo final | [roteiros/etapa-7-devsecops-e-video-final.md](./roteiros/etapa-7-devsecops-e-video-final.md) | Concluída |
 
 ---
 
@@ -28,10 +28,10 @@ A tabela relaciona cada integrante ao nome que aparece no histórico de commits,
 
 | Integrante | Usuário do GitHub |
 |---|---|
-| Arthur Medeiros | Arthur Medeiros |
+| Arthur Medeiros | medeiros08 |
 | Emanuel Ferreira | cwrricio |
-| Guilherme Mundt | Guilherme Chagas |
-| Lívia Barbosa | Lívia Barbosa |
+| Guilherme Mundt | doffyGC |
+| Lívia Barbosa | liviavbarbosa |
 | Mariana Padilha | MariPadilha |
 | Matheus Ciocca | MatheusCiocca |
 
@@ -43,21 +43,36 @@ As responsabilidades de cada integrante são registradas em seção própria ao 
 
 ```text
 bah_delivery/
-├── README.md                                        Página inicial do projeto
+├── README.md                                            Página inicial do projeto
 │
-├── docs/
-│   ├── etapa-1-ameacas-stride.md                    Ativos, ameaças STRIDE e casos de abuso
-│   ├── etapa-2-riscos-nist.md                       Registro, avaliação e tratamento de riscos
-│   ├── etapa-3-arquitetura-segura.md                Requisitos de segurança, vulnerabilidades
-│   │                                                catalogadas e arquitetura por zonas de confiança
-│   └── etapa-4-codigo-seguro-e-testes-seguranca.md  Práticas de código seguro, com os testes
-│                                                    definidos antes da implementação
+├── docs/                                                Documentos das etapas 1 a 5 e as evidências da Etapa 5
+│   ├── etapa-1-ameacas-stride.md                        Ativos, ameaças STRIDE e casos de abuso
+│   ├── etapa-2-riscos-nist.md                           Registro, avaliação e tratamento de riscos
+│   ├── etapa-3-arquitetura-segura.md                    Requisitos de segurança, vulnerabilidades
+│   │                                                    catalogadas e arquitetura por zonas de confiança
+│   ├── etapa-4-codigo-seguro-e-testes-seguranca.md      Práticas de código seguro, com os testes
+│   │                                                    definidos antes da implementação
+│   ├── etapa-5-verificacao-de-vulnerabilidades.md       Sessão do OWASP ZAP contra o Juice Shop, com a
+│   │                                                    análise dos achados A01 a A03
+│   │
+│   └── evidencias/                                      Capturas de tela que sustentam os achados
+│       └── etapa-5/                                     Evidências da varredura da Etapa 5
+│           ├── .gitkeep                                 Mantém o diretório no versionamento
+│           ├── A01.png                                  Achado A01 — redirecionamento para fora do site
+│           ├── A02.png                                  Achado A02 — ausência de token anti-CSRF
+│           └── A03.png                                  Achado A03 — diretiva de CSP sem fallback definido
 │
-└── diagramas/
-    ├── etapa-1/
-    │   ├── diagrama-casos-de-uso.png
-    │   └── diagrama-de-contexto.png
-    └── etapa-3/
-        ├── arquitetura-segura.mmd                   Arquivo-fonte do diagrama, em Mermaid
-        └── arquitetura-segura.png                   Imagem renderizada a partir do fonte
+├── roteiros/                                            Roteiros das etapas 6 e 7
+│   ├── etapa-6-deteccao-de-intrusoes.md                 Eventos a registrar, regras de detecção e
+│   │                                                    resposta a alerta
+│   └── etapa-7-devsecops-e-video-final.md               Pipeline DevSecOps, condições que impedem a
+│                                                        continuidade e roteiro do vídeo final
+│
+└── diagramas/                                           Diagramas citados pelos documentos
+    ├── etapa-1/                                         Diagramas de contexto e de casos de uso
+    │   ├── diagrama-casos-de-uso.png                    Perfis de usuário e operações da plataforma
+    │   └── diagrama-de-contexto.png                     Fronteiras do sistema e agentes externos
+    └── etapa-3/                                         Arquitetura segura por zonas de confiança
+        ├── arquitetura-segura.mmd                       Arquivo-fonte do diagrama, em Mermaid
+        └── arquitetura-segura.png                       Imagem renderizada a partir do fonte
 ```
