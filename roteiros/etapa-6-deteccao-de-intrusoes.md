@@ -105,9 +105,17 @@ Os treze eventos foram escolhidos de modo que as três regras da seção seguint
 
 | Risco observado | Fonte de dados | Condição de alerta | Resposta inicial |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
+| *Em preenchimento, integrante 1* | | | |
+| *Em preenchimento, integrante 3* | | | |
+| **R13 — Comprometimento da integridade do banco de dados por injeção de comandos nas consultas da aplicação** (Crítico, pontuação 16), originado das ameaças T05 e I06 | Eventos **E9**, nas duas formas em que a aplicação os emite: `busca_recusada`, produzido pela validação de entrada (**C82**), e `falha_na_busca`, produzido pelo tratamento de erro que mantém a exceção e a consulta apenas no registro interno (**C84**) — ambos já implementados na [prática 1 da Etapa 4](../docs/etapa-4-codigo-seguro-e-testes-seguranca.md#1-prática-1--consultas-parametrizadas-e-validação-de-entrada). Somam-se a eles os registros de assinatura de injeção reconhecida na borda, na CDN com WAF | Duas condições independentes, e basta uma delas (**C85**): **(a)** qualquer ocorrência isolada de `falha_na_busca` cujo detalhe registrado indique erro de sintaxe na consulta; **(b)** dez ou mais `busca_recusada` da mesma origem em cinco minutos, ou qualquer assinatura de injeção reconhecida na borda | Bloqueio da origem identificada, que é reversível e não depende de confirmação, e abertura da triagem para a Infraestrutura com prazo de até uma hora. A desativação temporária do endpoint afetado (**C86**) só ocorre depois de confirmada a triagem. O registro do período não é expurgado, porque é dele que dependem a apuração e a comparação com o backup previstas em **C87** |
+
+**Sobre a regra 3.** As duas condições existem porque os dois eventos têm qualidades de sinal opostas, e um limiar único trataria mal as duas.
+
+A condição (a) dispensa limiar. A aplicação não produz consulta sintaticamente inválida em operação normal: a estrutura do comando é fixa e o valor do usuário chega vinculado como parâmetro, conforme **C81**. Um erro de sintaxe registrado é, portanto, indício de que alguma entrada alcançou a estrutura da consulta em algum ponto não previsto, e uma única ocorrência já merece verificação. É também o motivo pelo qual a mensagem detalhada não pode voltar ao cliente: o mesmo dado que sustenta a detecção é o que realimentaria a exploração descrita em I06.
+
+A condição (b) exige volume, pelo motivo inverso. Uma recusa da validação é o comportamento correto e acontece com usuário legítimo — o exemplo de `Pão & Cia` registrado na Etapa 4 é exatamente isso. Recusa isolada é ruído; sequência de recusas da mesma origem em janela curta é tentativa de descobrir quais caracteres atravessam a lista de permitidos.
+
+A regra tem uma limitação conhecida, e registrá-la é parte de defini-la: uma injeção que atravesse a validação sem provocar erro de sintaxe — como o termo `1 UNION SELECT senha FROM usuarios`, que é composto apenas de caracteres aceitos — não satisfaz nenhuma das duas condições. Ela não produz alerta porque também não produz efeito: chega ao banco como valor da cláusula `LIKE`, e não como comando. Quem impede o dano nesse caso é **C81**, e não esta regra. O ponto importa para a triagem: o silêncio desta regra é evidência de ausência de erro de execução, e não de ausência de tentativa.
 
 ---
 
