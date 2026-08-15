@@ -39,7 +39,7 @@ O R13 foi classificado anteriormente como **Crítico**, com:
 
 ### 1.2. Requisito de segurança
 
-**RS13 — O sistema deve tratar toda entrada fornecida pelo usuário como dado não confiável, validando-a antes do processamento e utilizando consultas parametrizadas em todas as operações realizadas no banco de dados. Entradas fornecidas pelo usuário não devem ser concatenadas diretamente em comandos SQL.**
+**RS02 — O sistema deve tratar toda entrada fornecida pelo usuário como dado não confiável, validando-a antes do processamento e utilizando consultas parametrizadas em todas as operações realizadas no banco de dados. Entradas fornecidas pelo usuário não devem ser concatenadas diretamente em comandos SQL.**
 
 Com esse requisito, pretende-se impedir que valores recebidos pela aplicação sejam interpretados pelo banco de dados como parte da estrutura de uma consulta.
 
@@ -51,8 +51,8 @@ Os testes abaixo foram definidos **antes da implementação da solução**, esta
 
 | ID       | Tipo           | Entrada ou ação                                                                                                                                                              | Resultado seguro esperado                                                                                                                                                                                                                    |
 | -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **TS01** | Caso válido    | Cliente pesquisa por um restaurante utilizando o texto `Pizza` no campo de busca.                                                                                            | [A preencher]                           |
-| **TS02** | Caso malicioso | Usuário informa no campo de busca uma entrada contendo caracteres e estrutura típica de tentativa de SQL Injection, com o objetivo de alterar a lógica da consulta original. | [A preencher|
+| **TS01** | Caso válido    | Cliente pesquisa por um restaurante utilizando o texto `Pizza` no campo de busca.                                                                                            | A pesquisa é concluída normalmente e devolve os restaurantes correspondentes, com o termo vinculado como valor da consulta e nunca como parte de sua estrutura. |
+| **TS02** | Caso malicioso | Usuário informa no campo de busca uma entrada contendo caracteres e estrutura típica de tentativa de SQL Injection, com o objetivo de alterar a lógica da consulta original. | A entrada é recusada antes de qualquer acesso ao banco, com resposta genérica e registro do evento `busca_recusada`. Ainda que fosse aceita pela validação, alcançaria o banco como valor e não alteraria a estrutura da consulta. |
 
 ### 1.3.1. TS01 — Pesquisa válida
 
@@ -72,7 +72,9 @@ O cliente informa `Pizza` no campo de pesquisa de restaurantes.
 
 **Resultado esperado:**
 
-[A preencher]
+A busca é concluída sem erro e devolve os restaurantes aprovados cujo nome ou categoria contenham `Pizza`, limitados aos vinte primeiros por ordem de nota média.
+
+O termo é aceito por `validar_termo_de_busca`, porque é composto apenas de caracteres da lista de permitidos e está dentro do tamanho máximo, e alcança o banco vinculado como parâmetro da cláusula `LIKE` definida em `CONSULTA_DE_RESTAURANTES`. Nenhuma mensagem de erro é devolvida ao cliente e nenhum evento `busca_recusada` é registrado.
 
 **Critério de aprovação:**
 
@@ -97,7 +99,9 @@ entrada contendo operadores, delimitadores ou comandos SQL inesperados
 
 **Resultado esperado:**
 
-[A preencher]
+A entrada é recusada por `validar_termo_de_busca` antes de a conexão com o banco ser aberta, porque aspas, ponto e vírgula, parênteses e marcadores de comentário não constam da lista de caracteres permitidos. O cliente recebe a resposta genérica `Termo de busca invalido.`, sem qualquer detalhe sobre a consulta, sobre a exceção ou sobre o banco, e o evento `busca_recusada` é registrado com o motivo e a origem da requisição.
+
+A recusa é o primeiro efeito, mas não é o que sustenta o teste. Mesmo que a lista de permitidos viesse a aceitar a entrada, ela continuaria alcançando o banco como valor da cláusula `LIKE`, e não como comando: a estrutura da consulta permanece a mesma, nenhum registro fora do escopo é devolvido e nenhuma escrita ocorre. É a independência entre as duas camadas, registrada em C81 e C82, que torna o resultado verificável sem depender do conjunto de caracteres hoje recusado.
 
 **Critério de aprovação:**
 
@@ -298,6 +302,10 @@ O sistema deve validar, no servidor, a identidade e o perfil do usuário antes d
 | --- | --- | --- | --- |
 | **TS03** | Caso válido | Usuário autenticado e autorizado solicita acesso a um recurso permitido para seu perfil | O servidor valida a autorização e permite o acesso ao recurso |
 | **TS04** | Caso malicioso/não autorizado | Usuário comum tenta executar uma ação administrativa ou acessar dados fora do escopo permitido para seu perfil | O servidor nega a operação e não retorna os dados ou executa a ação protegida |
+| **TS05** | Caso malicioso/não autorizado | Cadastro enviando o campo `perfil` com o valor `administrador` no corpo da requisição | O servidor descarta o campo, a conta nasce com o perfil `cliente` e não alcança nenhuma operação administrativa |
+| **TS06** | Caso malicioso/não autorizado | Requisição apresentando token forjado, expirado ou com o algoritmo de assinatura alterado | O servidor recusa a sessão antes de qualquer verificação de permissão, e o perfil usado na decisão vem sempre da conta armazenada |
+
+RS03 estabelece três critérios verificáveis, e cada um corresponde a uma das ameaças de origem. TS03 e TS04 exercitam o primeiro deles — a decisão de autorização tomada no servidor, com negação por padrão, que responde a **E01**. Os dois testes seguintes cobrem os critérios restantes: TS05 responde a **E02**, o perfil recebido como campo da requisição, e TS06 responde a **E03**, o perfil obtido de um token cuja assinatura não é verificada. Os quatro exercitam o mesmo caminho — `resolver_usuario_autenticado` e `autorizar` —, mas em pontos distintos, porque as três ameaças alcançam a elevação de privilégio por rotas diferentes.
 
 ### 2.3.1 TS03 — Acesso autorizado conforme o perfil
 
@@ -346,6 +354,99 @@ def test_usuario_nao_pode_acessar_recurso_sem_autorizacao():
 
 **Resultado esperado:** o servidor deve negar a operação, pois um usuário com perfil `cliente` não possui autorização para executar ações administrativas. A mesma validação deve impedir o acesso a dados de clientes ou estabelecimentos que estejam fora do escopo autorizado para o usuário.
 
+### 2.3.3 TS05 — Descarte do perfil enviado na requisição
+
+**Objetivo:** verificar se o perfil informado no corpo da requisição de cadastro é ignorado pelo servidor, de modo que um usuário não consiga declarar-se administrador ao criar a própria conta. Corresponde à ameaça **E02** e ao controle **C67**.
+
+**Pré-condição:** o endpoint de cadastro aceita o corpo da requisição enviado pelo cliente, sem que a interface restrinja quais campos podem ser incluídos.
+
+```python
+def test_cadastro_descarta_perfil_enviado_na_requisicao():
+    dados_da_requisicao = {
+        "nome": "Ana Souza",
+        "email": "ana@exemplo.com",
+        "senha": "senha-forte",
+        "telefone": "51999990000",
+        "perfil": "administrador",      # campo acrescentado pelo atacante
+    }
+
+    conta = cadastrar_usuario(dados_da_requisicao)
+
+    # O campo nao consta de 'campos_aceitos' e nao chega ao repositorio.
+    assert conta.perfil == "cliente"
+
+    # A conta criada tambem nao alcanca a operacao administrativa.
+    usuario = {"id": conta.id, "perfil": conta.perfil, "autenticado": True}
+
+    try:
+        executar_acao_administrativa(usuario)
+        elevacao_obtida = True
+    except PermissionError:
+        elevacao_obtida = False
+
+    assert elevacao_obtida is False
+```
+
+**Resultado esperado:** a conta é criada com o perfil `cliente`, porque `cadastrar_usuario` copia apenas os campos declarados em `campos_aceitos` e fixa o perfil no servidor. O valor `administrador` enviado na requisição não chega ao repositório de contas e não produz efeito algum.
+
+A segunda parte do teste existe porque o primeiro `assert` verifica o estado da conta, e não a consequência dele. Ao invocar a operação administrativa com a conta recém-criada, o teste confirma que a elevação não ocorreu de fato: `autorizar` recusa por negação por padrão, com o motivo `operacao_fora_do_perfil`, e a recusa é registrada em auditoria.
+
+**Critério de aprovação:** o teste será considerado aprovado se a conta nascer com o perfil `cliente` independentemente do valor enviado e se a operação administrativa for recusada com `PermissionError`.
+
+### 2.3.4 TS06 — Recusa de token forjado, expirado ou com algoritmo alterado
+
+**Objetivo:** verificar se um token cuja assinatura não é válida é recusado antes de qualquer verificação de permissão, e se o perfil usado na decisão de autorização vem da conta armazenada, e não do conteúdo do token. Corresponde à ameaça **E03** e ao controle **C68**.
+
+**Pré-condição:** `token_de_teste` é um auxiliar do próprio teste, que monta um token com o identificador, o perfil, o segredo, a validade e o algoritmo informados, permitindo produzir cada variante recusada sem depender do fluxo de login.
+
+```python
+def test_token_invalido_e_recusado_antes_da_autorizacao():
+    tokens_recusados = {
+        "assinatura_forjada": token_de_teste(
+            id_usuario=10, perfil="administrador", segredo="segredo-errado"),
+        "expirado": token_de_teste(
+            id_usuario=10, perfil="cliente", validade_em_segundos=-1),
+        "algoritmo_alterado": token_de_teste(
+            id_usuario=10, perfil="administrador", algoritmo="none"),
+    }
+
+    for caso, token in tokens_recusados.items():
+        try:
+            resolver_usuario_autenticado(token)
+            sessao_aceita = True
+        except PermissionError:
+            sessao_aceita = False
+
+        assert sessao_aceita is False, caso
+
+
+def test_perfil_vem_da_conta_e_nao_do_token():
+    # Conta legitimamente cadastrada como 'cliente'.
+    conta = repositorio_de_contas.criar(
+        nome="Ana Souza", email="ana@exemplo.com", perfil="cliente")
+
+    # Token com assinatura valida, mas com o perfil adulterado no conteudo.
+    token = token_de_teste(id_usuario=conta.id, perfil="administrador")
+
+    usuario = resolver_usuario_autenticado(token)
+
+    assert usuario["perfil"] == "cliente"
+
+    try:
+        executar_acao_administrativa(usuario)
+        elevacao_obtida = True
+    except PermissionError:
+        elevacao_obtida = False
+
+    assert elevacao_obtida is False
+```
+
+**Resultado esperado:** nas três variantes do primeiro teste, `resolver_usuario_autenticado` interrompe a requisição com `PermissionError` e a mensagem genérica `Sessão inválida.`, sem consultar a matriz de autorização. A assinatura forjada e o algoritmo alterado são recusados por `verificar_assinatura`, que aceita apenas o algoritmo fixado em `ALGORITMO_DE_ASSINATURA` e o segredo obtido do gerenciador; o token expirado é recusado pela mesma verificação, antes da consulta ao repositório de contas.
+
+O segundo teste cobre o caso que os três anteriores não alcançam: um token cuja assinatura é legítima, mas cujo conteúdo declara um perfil que a conta não possui. Como `resolver_usuario_autenticado` devolve o perfil lido de `repositorio_de_contas`, e não o que consta do token, a identidade resolvida permanece `cliente` e a operação administrativa é recusada. É essa leitura que torna o perfil declarado no token irrelevante para a decisão.
+
+**Critério de aprovação:** o teste será considerado aprovado se as três variantes de token inválido forem recusadas antes de qualquer verificação de permissão e se o perfil resolvido corresponder ao da conta armazenada, ainda que o token declare outro.
+
 ---
 
 ### 2.4 Implementação
@@ -356,7 +457,7 @@ O código está separado e organizado em quatro partes:
 1. **Matriz de autorização:** declara quais operações são permitidas e sob qual condição de escopo para cada perfil;
 2. **Resolução da identidade:** o perfil é obtido no servidor a partir da conta armazenada, e não do token nem da requisição;
 3. **Função de autorização:** ponto único de decisão, com negação por padrão, aplicado antes de qualquer operação protegida;
-4. **Operações protegidas:** os pontos de entrada usados pelos testes TS03 e TS04, que apenas executam a regra de negócio depois que a autorização foi concedida.
+4. **Operações protegidas:** os pontos de entrada usados pelos testes TS03 a TS06, que apenas executam a regra de negócio depois que a autorização foi concedida.
 
 ```python
 # 1. Matriz de autorização (C100)
@@ -474,7 +575,7 @@ def autorizar(usuario, operacao, recurso=None):
     return True
 
 
-# 4. Operações protegidas (pontos de entrada exercitados por TS03 e TS04)
+# 4. Operações protegidas (pontos de entrada exercitados por TS03 a TS06)
 
 def acessar_recurso(usuario, recurso):
     """Consulta de dados do cliente, restrita ao próprio registro."""
@@ -521,8 +622,9 @@ O resultado da prática é verificável pelos três critérios que RS03 estabele
 | Cliente consulta o próprio registro | Acesso concedido: a operação consta da matriz do perfil e o campo `cliente_id` do recurso corresponde ao usuário autenticado | C100 e C101 | TS03 |
 | Cliente invoca operação administrativa | Recusa com `PermissionError` e mensagem genérica, antes de qualquer leitura ou escrita, com registro `acesso_negado` e motivo `operacao_fora_do_perfil` | C66 | TS04 |
 | Cliente autenticado solicita registro de outro cliente | Recusa pelo mesmo caminho, com motivo `recurso_fora_do_escopo`: o perfil está correto, mas o recurso não lhe pertence | C101 | `pertence_ao_usuario`, observação da §2.4 |
-| Cadastro enviando `"perfil": "administrador"` no corpo | O campo é descartado por `cadastrar_usuario`, e a conta nasce com o perfil `cliente` | C67 | Observação da §2.4 |
-| Token forjado, expirado ou com algoritmo alterado | Recusa em `resolver_usuario_autenticado`, antes de qualquer verificação de permissão, porque o algoritmo é fixado no servidor e o perfil vem de `repositorio_de_contas` | C68 | Observação da §2.4 |
+| Cadastro enviando `"perfil": "administrador"` no corpo | O campo é descartado por `cadastrar_usuario`, e a conta nasce com o perfil `cliente` | C67 | TS05 |
+| Token forjado, expirado ou com algoritmo alterado | Recusa em `resolver_usuario_autenticado`, antes de qualquer verificação de permissão, porque o algoritmo é fixado no servidor e o perfil vem de `repositorio_de_contas` | C68 | TS06 |
+| Token de assinatura válida declarando perfil que a conta não possui | O perfil resolvido é o da conta armazenada, de modo que o valor declarado no token não altera a decisão | C68 | TS06 |
 | Operação nova exposta pela API sem entrada na matriz | Recusa por ausência: nenhum perfil a possui, e a negação por padrão a torna inacessível até que a matriz seja atualizada | C66 | TS04, pelo mesmo caminho |
 
 A última linha é a que sustenta o resultado ao longo do tempo. Se a autorização fosse escrita rota a rota, a rota acrescentada amanhã ficaria exposta por esquecimento, e o comportamento seguro dependeria de alguém lembrar de verificar. Com a matriz declarada em um único lugar e a negação por padrão em `autorizar`, o esquecimento produz recusa, e não exposição. É a mesma inversão que a [decisão DA03](./etapa-3-arquitetura-segura.md#34-da03---autorização-como-ponto-único-de-decisão-no-servidor-com-negação-por-padrão) registra na Etapa 3.
@@ -534,7 +636,7 @@ Quanto às ameaças de origem, E01 deixa de ter caminho porque a interface não 
 Três limites permanecem, e registrá-los faz parte do resultado:
 
 1. **A prática cobre as operações declaradas na matriz, e não a API inteira.** A afirmação de que R11 foi tratado só se estende às demais rotas depois que o inventário de permissões previsto em C65 e a matriz completa prevista em C100 estiverem concluídos, conforme a posição 5 da [ordem de implementação](./etapa-2-riscos-nist.md#36-ordem-de-implementação-dos-controles).
-2. **Dois dos três critérios de RS03 não são exercitados por TS03 e TS04.** Os testes cobrem a negação por padrão; o descarte do campo de perfil (C67) e a recusa do token forjado (C68) são observáveis apenas pela leitura do código da §2.4. A evidência prevista no plano de tratamento exige testes próprios para os dois, e eles ainda não foram escritos.
+2. **Os três critérios de RS03 têm teste próprio, mas apenas em nível de unidade.** TS03 e TS04 cobrem a negação por padrão, TS05 o descarte do campo de perfil (C67) e TS06 a recusa do token e a resolução do perfil na conta armazenada (C68). Os quatro exercitam as funções `autorizar`, `cadastrar_usuario` e `resolver_usuario_autenticado` diretamente, e não a rota que as chama: o que resta verificar é que cada rota exposta pela API efetivamente as invoque, o que só o teste dinâmico do [momento 6 do pipeline](../roteiros/etapa-7-devsecops-e-video-final.md#26-teste-dinâmico-ou-pentest) alcança.
 3. **C69 e C70 não se realizam neste código.** A exigência de nova autenticação em alteração de permissões é fluxo administrativo completo, e o alerta de concessão de privilégio é regra de detecção, tratada na [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md). O que este código entrega para ela é o registro `acesso_negado`, com rota, perfil resolvido e motivo.
 
 Como o Bah Delivery não está implementado, o resultado descrito nesta seção é o comportamento esperado da prática, e não redução de risco já obtida. A [estimativa de risco residual da Etapa 2](./etapa-2-riscos-nist.md#37-risco-residual-esperado) mantém R11 em nível Médio mesmo com o plano executado, e a condição de aceitação ali registrada é exatamente a desta prática: toda rota administrativa coberta por teste de negação por padrão e papel resolvido no servidor.
@@ -564,7 +666,9 @@ As vulnerabilidades catalogadas correspondentes — CWE-862 para a rota que não
 | Prática | Ameaças | Risco | Requisito | Testes |
 |---|---|---|---|---|
 | Consultas parametrizadas e validação de entrada | T05, I06      | R13   | RS02      | TS01, TS02 |
-| Autorização no servidor                         | E01, E02, E03 | R11   | RS03      | TS03, TS04 |
+| Autorização no servidor                         | E01, E02, E03 | R11   | RS03      | TS03, TS04, TS05, TS06 |
+
+Na segunda prática, cada ameaça de origem tem teste correspondente: E01 é exercitada por TS03 e TS04, E02 por TS05 e E03 por TS06.
 
 ---
 

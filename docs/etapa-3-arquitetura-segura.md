@@ -161,7 +161,7 @@ As decisões abaixo registram como o Bah Delivery seria organizado para atender 
 
 **Componente afetado.** Regras de autorização, que passam a ser o ponto único de decisão da zona de aplicação e o detentor da matriz de permissões; serviço de autenticação, que emite sessão sem embutir papel na decisão; repositório de contas, consultado a cada requisição para resolver o papel vigente; API REST, cujas rotas passam a declarar a operação que executam em vez de verificar permissão por conta própria; interface web, que deixa de ser ponto de restrição; e zona de auditoria, que recebe as recusas e toda alteração de permissão.
 
-**Resultado esperado.** Os três critérios de verificação de RS03 tornam-se observáveis em um só componente: a rota administrativa invocada por conta de cliente é recusada, o campo de perfil enviado na requisição não produz efeito e o token com assinatura inválida ou algoritmo alterado é rejeitado antes de qualquer verificação de permissão. A implementação e os testes correspondentes estão na [prática 2 da Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md#2-prática-2-autorização-no-servidor), exercitada por TS03 e TS04. Como efeito secundário, toda recusa passa a ser registrada com rota, perfil resolvido e recurso solicitado, o que produz o evento previsto na [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md#33-relação-dos-eventos) e permite distinguir a recusa isolada, que é o sistema funcionando, da sequência de recusas contra rotas administrativas, que é tentativa de elevação em curso.
+**Resultado esperado.** Os três critérios de verificação de RS03 tornam-se observáveis em um só componente: a rota administrativa invocada por conta de cliente é recusada, o campo de perfil enviado na requisição não produz efeito e o token com assinatura inválida ou algoritmo alterado é rejeitado antes de qualquer verificação de permissão. A implementação e os testes correspondentes estão na [prática 2 da Etapa 4](./etapa-4-codigo-seguro-e-testes-seguranca.md#2-prática-2-autorização-no-servidor), exercitada por TS03 a TS06, um critério de cada vez. Como efeito secundário, toda recusa passa a ser registrada com rota, perfil resolvido e recurso solicitado, o que produz o evento previsto na [Etapa 6](../roteiros/etapa-6-deteccao-de-intrusoes.md#33-relação-dos-eventos) e permite distinguir a recusa isolada, que é o sistema funcionando, da sequência de recusas contra rotas administrativas, que é tentativa de elevação em curso.
 
 ---
 
@@ -173,7 +173,7 @@ A etapa converte os riscos da [Etapa 2](./etapa-2-riscos-nist.md) em três requi
 |---|---|---|---|---|---|---|
 | RS01 | R01 | S01 | CWE-307 | DA01 | Serviço de autenticação | — |
 | RS02 | R13 | T05, I06 | CWE-89 | DA02 | Validação e acesso a dados | Prática 1 (TS01, TS02) |
-| RS03 | R11 (e R16) | E01, E02, E03 | CWE-862, CWE-915, CWE-347 | DA03 | Regras de autorização | Prática 2 (TS03, TS04) |
+| RS03 | R11 (e R16) | E01, E02, E03 | CWE-862, CWE-915, CWE-347 | DA03 | Regras de autorização | Prática 2 (TS03, TS04, TS05, TS06) |
 
 Três observações fecham a etapa.
 
