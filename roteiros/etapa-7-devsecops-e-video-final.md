@@ -175,7 +175,7 @@ O apoio visual de cada bloco vem exclusivamente do que já foi produzido nas eta
 
 ### 4.1. Estrutura por blocos
 
-A apresentação tem vinte slides, e a coluna *Slides* indica quais correspondem a cada bloco. O texto integral de cada fala está em [`apresentacao/bah-delivery-roteiro-de-falas.pdf`](../apresentacao/bah-delivery-roteiro-de-falas.pdf).
+A apresentação tem vinte slides, e a coluna *Slides* indica quais correspondem a cada bloco. A gravação da apresentação será entregue fora do repositório, que mantém apenas este roteiro e o material de apoio já produzido nas etapas anteriores.
 
 | Bloco | Slides | Conteúdo | Apresenta | Apoio visual |
 |---|---|---|---|---|

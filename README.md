@@ -20,6 +20,8 @@ O sistema não é implementado: o objetivo do trabalho é analisar sua seguranç
 | 6 | Monitoramento e detecção de intrusões | [roteiros/etapa-6-deteccao-de-intrusoes.md](./roteiros/etapa-6-deteccao-de-intrusoes.md) | Concluída |
 | 7 | DevSecOps e vídeo final | [roteiros/etapa-7-devsecops-e-video-final.md](./roteiros/etapa-7-devsecops-e-video-final.md) | Concluída |
 
+A apresentação e o vídeo final são entregues fora do repositório e, por isso, não são versionados aqui.
+
 ---
 
 ## Integrantes
